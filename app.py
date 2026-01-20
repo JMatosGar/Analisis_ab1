@@ -1,5 +1,10 @@
 import streamlit as st
+import zipfile
+import os
+import tempfile
+from pipeline.carga_ab1 import cargar_ab1_zip
 
+#Se establecen las características de la app.
 st.set_page_config(
     page_title="Analisis de ab1",
     layout="wide"
@@ -8,10 +13,61 @@ st.set_page_config(
 st.title("Preprocesado de ficheros ab1")
 st.write("Aplicación para el análisis de secuencias Sanger (.ab1)")
 
+#Se cargan los ficheros a la app.
 carga_zip = st.file_uploader(
     "Carga el archivo ZIP que contiene los ficheros .ab1",
-    type=["zip"]
-)
+    type=["zip"])
 
-if carga_zip is not None:
-    st.success(f"Archivo cargado: {uploaded_zip.name}")
+if carga_zip:
+    st.success(f"✅ ZIP {carga_zip.name} cargado correctamente")
+
+    #Se almacenan temporalmente los ficheros.
+    with tempfile.TemporaryDirectory() as tmpdir:
+        ruta_zip = os.path.join(tmpdir, carga_zip.name)
+
+        with open(ruta_zip, "wb") as f:
+            f.write(carga_zip.getbuffer())
+
+        try:
+            with zipfile.ZipFile(ruta_zip, "r") as zip_ref:
+                zip_ref.extractall(tmpdir)
+
+        except zipfile.BadZipFile:
+            st.error("El fichero no es archivo ZIP válido")
+            st.stop
+
+        #Se identifican los ficheros encontrados.
+        ab1_files = [os.path.join(tmpdir, f) for f in os.listdir(tmpdir) if f.endswith(".ab1")]
+        st.write(f"Se han encontrado {len(ab1_files)} ficheros ab1")
+
+        #Se procesan los datos cargados.
+        if not ab1_files:
+            st.warning("⚠️No se han encontrado ficheros ab1 en el ZIP")
+
+        else:
+            #Se permite establecer el umbral de calidad deseado.
+            umbral_usuario = st.slider("Selecciona el umbral de calidad Phred",
+                min_value=0, max_value=40, value=20, step=1)
+            
+            try:
+                #Se extrae la información de los ficheros ab1.
+                df = cargar_ab1_zip(ab1_files, umbral = umbral_usuario)
+                st.success("✅ Los datos se han cargado correctamente")
+                st.dataframe(df)
+
+                #Se permite la descarga de los datos en forma de excel.
+                if 'df' in locals():
+                    output = BytesIO()
+                    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                        df.to_excel(writer, index=False, sheet_name="AB1 Results")
+                    processed_data = output.getvalue()
+
+                    st.download_button(
+                    label="📥 Descargar resultados Excel",
+                    data=processed_data,
+                    file_name="AB1_results.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+            except ValueError as e:
+                st.error(str(e))
+                
