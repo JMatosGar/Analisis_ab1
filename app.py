@@ -13,5 +13,5 @@ carga_zip = st.file_uploader(
     type=["zip"]
 )
 
-if uploaded_zip is not None:
+if carga_zip is not None:
     st.success(f"Archivo cargado: {uploaded_zip.name}")
