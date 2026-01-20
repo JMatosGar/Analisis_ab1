@@ -5,6 +5,7 @@ import tempfile
 from io import BytesIO
 import pandas as pd
 from pipeline.carga_ab1 import cargar_ab1_zip
+from pipeline.corte_ab1 import cortar_ab1
 
 #Se establecen las características de la app.
 st.set_page_config(
@@ -60,7 +61,8 @@ if carga_zip:
                 #Se extrae la información de los ficheros ab1.
                 df = cargar_ab1_zip(ab1_files, umbral = umbral_usuario)
                 st.success("✅ Los datos se han cargado correctamente")
-                st.dataframe(df)
+                if st.button("Mostrar dataframe"):
+                    st.dataframe(df)
 
                 #Se permite la descarga de los datos en forma de excel.
                 if 'df' in locals():
@@ -77,4 +79,28 @@ if carga_zip:
 
             except ValueError as e:
                 st.error(str(e))
-                
+
+#Se incluye el trimming de secuencias.
+st.subheader("Limpieza de secuencias")
+
+try:
+    trimmed_df = cortar_ab1(df, umbral = umbral_usuario, min_bases = 5, output = "_trimmed")
+    st.success("✅ Las secuencias han sido cortadas correctamente")
+
+    if st.button("Mostrar dataframe"):
+        st.dataframe(trimmed_df)
+
+        #Se incluye el botón de descarga.
+        output_trim = BytesIO()
+        with pd.ExcelWriter(output_trim, engine='openpyxl') as writer:
+            trimmed_df.to_excel(writer, index=False, sheet_name="Trimmed Results")
+        processed_trim = output_trim.getvalue()
+
+        st.download_button(
+            label="📥 Descargar resultados del trimming Excel",
+            data=processed_trim,
+            file_name="AB1_trimmed_results.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+except ValueError as e:
+    st.error(str(e)) 
