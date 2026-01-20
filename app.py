@@ -37,7 +37,12 @@ if carga_zip:
             st.stop
 
         #Se identifican los ficheros encontrados.
-        ab1_files = [os.path.join(tmpdir, f) for f in os.listdir(tmpdir) if f.endswith(".ab1")]
+        ab1_files = []
+        for root, dirs, files in os.walk(tmpdir):
+            for f in files:
+                if f.lower().endswith(".ab1"):
+                    ab1_files.append(os.path.join(root, f))        
+        
         st.write(f"Se han encontrado {len(ab1_files)} ficheros ab1")
 
         #Se procesan los datos cargados.
