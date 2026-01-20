@@ -2,6 +2,7 @@ import streamlit as st
 import zipfile
 import os
 import tempfile
+from io import BytesIO
 from pipeline.carga_ab1 import cargar_ab1_zip
 
 #Se establecen las características de la app.
