@@ -60,21 +60,24 @@ if carga_zip:
             try:
                 #Se extrae la información de los ficheros ab1.
                 df = cargar_ab1_zip(ab1_files, umbral = umbral_usuario)
+                st.session_state["df"] = df
+                st.session_state["umbral"] = umbral_usuario
                 st.success("✅ Los datos se han cargado correctamente")
-                if st.button("Mostrar dataframe"):
-                    st.dataframe(df)
+                if "df" in session_state:
+                    if st.button("Mostrar dataframe"):
+                        st.dataframe(df)
 
-                    #Se permite la descarga de los datos en forma de excel.
-                    output = BytesIO()
-                    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-                        df.to_excel(writer, index=False, sheet_name="AB1 Results")
-                    processed_data = output.getvalue()
+                        #Se permite la descarga de los datos en forma de excel.
+                        output = BytesIO()
+                        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                            df.to_excel(writer, index=False, sheet_name="AB1 Results")
+                        processed_data = output.getvalue()
 
-                    st.download_button(
-                    label="📥 Descargar resultados Excel",
-                    data=processed_data,
-                    file_name="AB1_results.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                        st.download_button(
+                        label="📥 Descargar resultados Excel",
+                        data=processed_data,
+                        file_name="AB1_results.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
             except ValueError as e:
                 st.error(str(e))
@@ -82,24 +85,25 @@ if carga_zip:
 #Se incluye el trimming de secuencias.
 st.subheader("Limpieza de secuencias")
 
-try:
-    trimmed_df = cortar_ab1(df, umbral = umbral_usuario, min_bases = 5, output = "_trimmed")
-    st.success("✅ Las secuencias han sido cortadas correctamente")
+if "df" in session_state:
+    try:
+        trimmed_df = cortar_ab1(df, umbral = umbral_usuario, min_bases = 5, output = "_trimmed")
+        st.success("✅ Las secuencias han sido cortadas correctamente")
 
-    if st.button("Mostrar dataframe"):
-        st.dataframe(trimmed_df)
+        if st.button("Mostrar dataframe"):
+            st.dataframe(trimmed_df)
 
-        #Se incluye el botón de descarga.
-        output_trim = BytesIO()
-        with pd.ExcelWriter(output_trim, engine='openpyxl') as writer:
-            trimmed_df.to_excel(writer, index=False, sheet_name="Trimmed Results")
-        processed_trim = output_trim.getvalue()
+            #Se incluye el botón de descarga.
+            output_trim = BytesIO()
+            with pd.ExcelWriter(output_trim, engine='openpyxl') as writer:
+                trimmed_df.to_excel(writer, index=False, sheet_name="Trimmed Results")
+            processed_trim = output_trim.getvalue()
 
-        st.download_button(
-            label="📥 Descargar resultados del trimming Excel",
-            data=processed_trim,
-            file_name="AB1_trimmed_results.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            st.download_button(
+                label="📥 Descargar resultados del trimming Excel",
+                data=processed_trim,
+                file_name="AB1_trimmed_results.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
-except ValueError as e:
-    st.error(str(e)) 
+    except ValueError as e:
+        st.error(str(e)) 
