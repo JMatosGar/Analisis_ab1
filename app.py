@@ -7,6 +7,7 @@ import pandas as pd
 from pipeline.carga_ab1 import cargar_ab1_zip
 from pipeline.cortar_ab1 import cortar_ab1
 from pipeline.QC import qc_plots
+from pipeline.consenso import generar_consensos, fasta_consenso
 
 #Se establecen las características de la app.
 st.set_page_config(
@@ -24,6 +25,7 @@ carga_zip = st.file_uploader(
 
 if carga_zip:
     st.success(f"✅ ZIP {carga_zip.name} cargado correctamente")
+    zip_name = os.path.splitext(carga_zip.name)[0]
 
     #Se almacenan temporalmente los ficheros.
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -85,10 +87,8 @@ if carga_zip:
                             df.to_excel(writer, index=False, sheet_name="AB1 Results")
                         processed_data = output.getvalue()
 
-                        st.download_button(
-                        label="📥 Descargar resultados Excel",
-                        data=processed_data,
-                        file_name="AB1_results.xlsx",
+                        st.download_button(label="📥 Descargar resultados Excel",
+                        data=processed_data, file_name=f"{zip_name}_ab1.xlsx",
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
             except ValueError as e:
@@ -125,11 +125,45 @@ if "df" in st.session_state:
                     trimmed_df.to_excel(writer, index=False, sheet_name="Trimmed Results")
                 processed_trim = output_trim.getvalue()
 
-                st.download_button(
-                    label="📥 Descargar resultados del trimming Excel",
-                    data=processed_trim,
-                    file_name="AB1_trimmed_results.xlsx",
+                st.download_button(label="📥 Descargar resultados del trimming",
+                    data=processed_trim, file_name=f"{zip_name}_ab1_trimmed.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
+    except ValueError as e:
+        st.error(str(e)) 
+
+#Se incluye la construcción de secuencias consenso.
+if "trimmed_df" in st.session_state:
+    st.subheader("Secuencias consenso")
+
+    try:
+        cons_df = generar_consensos(trimmed_df, umbral=umbral_usuario)
+        st.session_state["cons_df"] = cons_df
+        st.success("✅ Las secuencias consenso se han generado correctamente")
+
+        if "cons_df" in st.session_state:
+            mostrar_consenso = st.checkbox("📋 Mostrar secuencias recortadas")
+            if mostrar_consenso:
+                st.write(f"Se han generado {len(cons_df)} secuencias consenso")
+                st.dataframe(st.session_state["cons_df"])
+
+                output_cons = BytesIO()
+                with pd.ExcelWriter(output_cons, engine='openpyxl') as writer:
+                    cons_df.to_excel(writer, index=False, sheet_name="Trimmed Results")
+                processed_cons = output_cons.getvalue()
+
+                st.download_button(label="📥 Descargar resultados del consenso",
+                    data=processed_cons, file_name=f"{zip_name}_consensos.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                
+                if not st.session_state["cons_df"].empty:
+                    fasta_str = fasta_consenso(cons_df)
+    
+                    st.download_button(label="📥 Descargar FASTA multiconsenso",
+        data=fasta_str.encode(), file_name=f"{zip_name}_multiconsenso.fasta", mime="text/plain")
+               
+                else:
+                    st.warning("⚠️ No se han generado consensos válidos")
+                
     except ValueError as e:
         st.error(str(e)) 
