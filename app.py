@@ -71,7 +71,7 @@ if carga_zip:
                         mostrar_plot = st.checkbox("📊 Mostrar gráficas AB1")
 
                         if mostrar_plot:
-                            figs = plot_qc_metrics(
+                            figs = qc_plots(
                                 st.session_state["df"],
                                 threshold=st.session_state["umbral"],
                                 trimmed=False)
@@ -110,7 +110,7 @@ if "df" in st.session_state:
                 mostrar_plot_trimming = st.checkbox("📊 Mostrar gráficas recortadas")
                 
                 if mostrar_plot:
-                    figs_trimmed = plot_qc_metrics(
+                    figs_trimmed = qc_plots(
                         st.session_state["trimmed_df"],
                         threshold=st.session_state["umbral"],
                         trimmed=True)
