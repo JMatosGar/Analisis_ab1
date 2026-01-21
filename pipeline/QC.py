@@ -67,6 +67,9 @@ def qc_plots(df, umbral=20, trimmed=True):
     ax3.axhline(y=umbral,
                 color="red",
                 linestyle="--", linewidth=1.5)
+    ax3.fill_betweenx(y=[threshold, ax3.get_ylim()[1]], 
+                      x1=threshold, x2=ax3.get_xlim()[1], 
+                      color="green", alpha=0.1)
 
     ax3.set_title("Calidad media vs mediana")
     ax3.set_xlabel("Calidad media")
