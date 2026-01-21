@@ -87,7 +87,7 @@ st.subheader("Limpieza de secuencias")
 
 if "df" in session_state:
     try:
-        trimmed_df = cortar_ab1(df, umbral = umbral_usuario, min_bases = 5, output = "_trimmed")
+        trimmed_df = cortar_ab1(df, umbral = umbral_usuario)
         st.success("✅ Las secuencias han sido cortadas correctamente")
 
         if st.button("Mostrar dataframe"):
