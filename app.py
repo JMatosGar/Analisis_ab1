@@ -85,7 +85,7 @@ if carga_zip:
 #Se incluye el trimming de secuencias.
 st.subheader("Limpieza de secuencias")
 
-if "df" in session_state:
+if "df" in st.session_state:
     try:
         trimmed_df = cortar_ab1(df, umbral = umbral_usuario)
         st.success("✅ Las secuencias han sido cortadas correctamente")
