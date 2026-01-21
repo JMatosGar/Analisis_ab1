@@ -6,6 +6,7 @@ from io import BytesIO
 import pandas as pd
 from pipeline.carga_ab1 import cargar_ab1_zip
 from pipeline.cortar_ab1 import cortar_ab1
+from pipeline.QC import qc_plots
 
 #Se establecen las características de la app.
 st.set_page_config(
@@ -67,6 +68,16 @@ if carga_zip:
                     mostrar_df = st.checkbox("📋 Mostrar dataframe AB1")
                     if mostrar_df:
                         st.dataframe(st.session_state["df"])
+                        mostrar_plot = st.checkbox("📊 Mostrar gráficas AB1")
+
+                        if mostrar_plot:
+                            figs = plot_qc_metrics(
+                                st.session_state["df"],
+                                threshold=st.session_state["umbral"],
+                                trimmed=False)
+
+                            for fig in figs:
+                                st.pyplot(fig)
 
                         #Se permite la descarga de los datos en forma de excel.
                         output = BytesIO()
@@ -96,6 +107,17 @@ if "df" in st.session_state:
             mostrar_trimming = st.checkbox("📋 Mostrar secuencias recortadas")
             if mostrar_trimming:
                 st.dataframe(st.session_state["trimmed_df"])
+                mostrar_plot_trimming = st.checkbox("📊 Mostrar gráficas recortadas")
+                
+                if mostrar_plot:
+                    figs_trimmed = plot_qc_metrics(
+                        st.session_state["trimmed_df"],
+                        threshold=st.session_state["umbral"],
+                        trimmed=True)
+
+                    for fig_trim in figs_trimmed:
+                        st.pyplot(fig_trim)
+                
 
                 #Se incluye el botón de descarga.
                 output_trim = BytesIO()
