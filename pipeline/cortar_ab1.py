@@ -67,4 +67,4 @@ def cortar_ab1(df, umbral=20):
             "Bases ambiguas (N)": num_amb,
             "Tramo alta calidad": larga_calidad})
 
-    return trimmed_df
+    return resultados
