@@ -129,7 +129,7 @@ def generar_consensos(trimmed_df, umbral=20):
         for _, f in fwd.iterrows():
             for _, r in rev.iterrows():
 
-                cons_seq, mean_q, bad_ov, n_trim = construir_consenso(
+                cons_seq, mean_q, bad_ov, n_trim = consenso(
                     f["Secuencia cortada"],
                     r["Secuencia cortada"],
                     f["Puntuación cortada"],
