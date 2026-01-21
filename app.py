@@ -5,7 +5,7 @@ import tempfile
 from io import BytesIO
 import pandas as pd
 from pipeline.carga_ab1 import cargar_ab1_zip
-from pipeline.corte_ab1 import cortar_ab1
+from pipeline.cortar_ab1 import cortar_ab1
 
 #Se establecen las características de la app.
 st.set_page_config(
@@ -64,8 +64,7 @@ if carga_zip:
                 if st.button("Mostrar dataframe"):
                     st.dataframe(df)
 
-                #Se permite la descarga de los datos en forma de excel.
-                if 'df' in locals():
+                    #Se permite la descarga de los datos en forma de excel.
                     output = BytesIO()
                     with pd.ExcelWriter(output, engine='openpyxl') as writer:
                         df.to_excel(writer, index=False, sheet_name="AB1 Results")
