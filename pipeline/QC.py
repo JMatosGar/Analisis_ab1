@@ -47,7 +47,7 @@ def qc_plots(df, umbral=20, trimmed=True):
     cal_df = pd.DataFrame(cal_data)
 
     fig2, ax2 = plt.subplots(figsize=(12, 5))
-    sns.boxplot(data=qual_df, x="Sample", y="Quality", ax=ax2)
+    sns.boxplot(data=cal_df, x="Sample", y="Quality", ax=ax2)
     ax2.axhspan(0, 20, color="red", alpha=0.15)
     ax2.axhspan(20, 30, color="orange", alpha=0.15)
     ax2.axhspan(30, cal_df["Quality"].max() * 1.1, color="green", alpha=0.15)
