@@ -57,12 +57,12 @@ if carga_zip:
             #Se permite establecer el umbral de calidad deseado.
             umbral_usuario = st.slider("Selecciona el umbral de calidad Phred",
                 min_value=0, max_value=40, value=20, step=1)
-            
+            st.session_state["umbral"] = umbral_usuario
+
             try:
                 #Se extrae la información de los ficheros ab1.
                 df = cargar_ab1_zip(ab1_files, umbral = umbral_usuario)
                 st.session_state["df"] = df
-                st.session_state["umbral"] = umbral_usuario
                 st.success("✅ Los datos se han cargado correctamente")
                 if "df" in st.session_state:
                     mostrar_df = st.checkbox("📋 Mostrar dataframe AB1")
