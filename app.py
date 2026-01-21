@@ -137,7 +137,7 @@ if "trimmed_df" in st.session_state:
     st.subheader("Secuencias consenso")
 
     try:
-        cons_df = generar_consensos(trimmed_df, umbral=umbral_usuario)
+        cons_df = construir_consensos(trimmed_df, umbral=umbral_usuario)
         st.session_state["cons_df"] = cons_df
         st.success("✅ Las secuencias consenso se han generado correctamente")
 
