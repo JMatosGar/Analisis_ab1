@@ -63,6 +63,7 @@ def cortar_ab1(df, umbral=20, min_bases=5, output="_trimmed"):
             "Calidad Media": calidad_media,
             "Mediana calidad": calidad_mediana,
             "% Bases alta calidad": pct_calidad_alta,
-            "Bases ambiguas (N)": num_amb})
+            "Bases ambiguas (N)": num_amb,
+            "Tramo alta calidad": larga_calidad})
 
     return trimmed_df
