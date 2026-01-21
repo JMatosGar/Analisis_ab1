@@ -65,7 +65,7 @@ if carga_zip:
                 st.success("✅ Los datos se han cargado correctamente")
                 if "df" in st.session_state:
                     mostrar_df = st.checkbox("📋 Mostrar dataframe AB1")
-                    if mostrar_df
+                    if mostrar_df:
                         st.dataframe(st.session_state["df"])
 
                         #Se permite la descarga de los datos en forma de excel.
