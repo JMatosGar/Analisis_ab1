@@ -1,4 +1,5 @@
 import statistics
+import pandas as pd
 
 def cortar_ab1(df, umbral=20):
     resultados = []
