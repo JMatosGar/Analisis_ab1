@@ -73,7 +73,7 @@ if carga_zip:
                         if mostrar_plot:
                             figs = qc_plots(
                                 st.session_state["df"],
-                                threshold=st.session_state["umbral"],
+                                umbral=st.session_state["umbral"],
                                 trimmed=False)
 
                             for fig in figs:
@@ -109,10 +109,10 @@ if "df" in st.session_state:
                 st.dataframe(st.session_state["trimmed_df"])
                 mostrar_plot_trimming = st.checkbox("📊 Mostrar gráficas recortadas")
                 
-                if mostrar_plot:
+                if mostrar_plot_trimming:
                     figs_trimmed = qc_plots(
                         st.session_state["trimmed_df"],
-                        threshold=st.session_state["umbral"],
+                        umbral=st.session_state["umbral"],
                         trimmed=True)
 
                     for fig_trim in figs_trimmed:
