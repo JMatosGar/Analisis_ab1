@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 
-def plot_qc_metrics(df, umbral=20, trimmed=True):
+def qc_plots(df, umbral=20, trimmed=True):
     
     sns.set(style="whitegrid")
     figs = []
