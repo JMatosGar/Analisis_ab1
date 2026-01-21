@@ -1,7 +1,8 @@
 import statistics
 
-def cortar_ab1(df, umbral=20, min_bases=5, output="_trimmed"):
+def cortar_ab1(df, umbral=20):
     resultados = []
+    min_bases = 5
 
     for _, row in df.iterrows():
         secuencia = row["Secuencia Fasta"]
@@ -24,7 +25,7 @@ def cortar_ab1(df, umbral=20, min_bases=5, output="_trimmed"):
                 fin = i
                 break
 
-        # ---- Apply trimming ----
+        #Se cortan los extremos de las secuencias.
         trimmed_sec = secuencia[inicio:fin]
         trimmed_cal = calidad[inicio:fin]
 
