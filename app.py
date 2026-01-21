@@ -142,7 +142,7 @@ if "trimmed_df" in st.session_state:
         st.success("✅ Las secuencias consenso se han generado correctamente")
 
         if "cons_df" in st.session_state:
-            mostrar_consenso = st.checkbox("📋 Mostrar secuencias recortadas")
+            mostrar_consenso = st.checkbox("📋 Mostrar secuencias consenso")
             if mostrar_consenso:
                 st.write(f"Se han generado {len(cons_df)} secuencias consenso")
                 st.dataframe(st.session_state["cons_df"])
