@@ -26,16 +26,16 @@ def qc_plots(df, umbral=20, trimmed=True):
         amb_col = "Bases ambiguas(N)"
 
     df = df.copy()
-    df["Sample"] = df["ID"].astype(str)
+    df["Sample"] = (df["ID"].astype(str).str.replace(".ab1", "", regex=False).str.split("_").str[0])
 
     #Longitud de las secuencias.
-    fig1, ax1 = plt.subplots(figsize=(10, 4))
+    fig1, ax1 = plt.subplots(figsize=(10, 5))
     sns.barplot(data=df, x="Sample", y=len_col, ax=ax1)
     ax1.axhspan(0, 400, color="red", alpha=0.15)
     ax1.axhspan(400, 650, color="orange", alpha=0.15)
     ax1.axhspan(650, df[len_col].max() * 1.1, color="green", alpha=0.15)
     ax1.set_title("Longitud de secuencia")
-    ax1.tick_params(axis="x", rotation=45)
+    ax1.tick_params(axis="x", rotation=45, labelsize=6)
     figs.append(fig1)
     
     #Boxplot con calidades de las secuencias.
@@ -46,13 +46,13 @@ def qc_plots(df, umbral=20, trimmed=True):
 
     cal_df = pd.DataFrame(cal_data)
 
-    fig2, ax2 = plt.subplots(figsize=(12, 5))
+    fig2, ax2 = plt.subplots(figsize=(10, 5))
     sns.boxplot(data=cal_df, x="Sample", y="Quality", ax=ax2)
     ax2.axhspan(0, 20, color="red", alpha=0.15)
     ax2.axhspan(20, 30, color="orange", alpha=0.15)
     ax2.axhspan(30, cal_df["Quality"].max() * 1.1, color="green", alpha=0.15)
     ax2.set_title("Distribución de calidades")
-    ax2.tick_params(axis="x", rotation=45)
+    ax2.tick_params(axis="x", rotation=45, labelsize=6)
     figs.append(fig2)
 
     #Media y mediana de las secuencias.
@@ -70,7 +70,8 @@ def qc_plots(df, umbral=20, trimmed=True):
     ax3.fill_betweenx(y=[umbral, ax3.get_ylim()[1]], 
                       x1=umbral, x2=ax3.get_xlim()[1], 
                       color="green", alpha=0.1)
-
+    
+    ax3.legend(fontsize=6, title_fontsize=9)
     ax3.set_title("Calidad media vs mediana")
     ax3.set_xlabel("Calidad media")
     ax3.set_ylabel("Calidad mediana")
