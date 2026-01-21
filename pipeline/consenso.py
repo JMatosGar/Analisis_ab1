@@ -29,7 +29,7 @@ def primers(filename):
 
 #Se crea una función que determina la secuencia consenso.
 def consenso(forward, reverse, forward_cal, reverse_cal,
-    umbral=20, min_overlap=50, delta=5):
+    umbral=20, delta=5):
     
     reverse_rc = str(Seq(reverse).reverse_complement())
     reverse_qual = reverse_qual[::-1]
@@ -93,7 +93,7 @@ def consenso(forward, reverse, forward_cal, reverse_cal,
     consensus_seq = consensus_seq_raw.strip("N")
     consensus_cal = consensus_cal[leading_n: len(consensus_cal) - trailing_n]
 
-    bad_overlap = len(consensus_seq) < min_overlap
+    bad_overlap = len(consensus_seq) < 150
 
     valid_cals = [q for q in consensus_cal if q > 0]
     mean_q = statistics.mean(valid_cals) if valid_cals else 0
@@ -115,7 +115,7 @@ def generar_consensos(trimmed_df, umbral=20):
 
     df = df[df["Orientation"].notna()]
 
-    df["Sample"] = df["ID"].str.split("_").str[0]
+    df["Sample"] = (df["ID"].astype(str).str.replace(".ab1", "", regex=False).str.split("_").str[0])
 
     results = []
 
@@ -134,24 +134,34 @@ def generar_consensos(trimmed_df, umbral=20):
                     r["Secuencia cortada"],
                     f["Puntuación cortada"],
                     r["Puntuación cortada"],
-                    umbral=umbral,
-                    min_overlap=min_overlap
-                )
+                    umbral=umbral,)
 
                 pct_n = cons_seq.count("N") / max(len(cons_seq), 1) * 100
 
                 results.append({
-                    "Sample": sample,
-                    "Forward primer": f["Primer"],
-                    "Reverse primer": r["Primer"],
-                    "Consensus sequence": cons_seq,
-                    "Consensus length": len(cons_seq),
-                    "Mean quality": mean_q,
-                    "Percent N": pct_n,
+                    "ID": sample,
+                    "Forward": f["Primer"],
+                    "Reverse": r["Primer"],
+                    "Secuencia consenso": cons_seq,
+                    "Longitud consenso": len(cons_seq),
+                    "Calidad media": mean_q,
+                    "% bases ambiguas (N)": pct_n,
                     "Bad overlap": bad_ov,
-                    "Trimmed Ns": n_trim})
+                    "Ns extraídas": n_trim})
 
     cons_df = pd.DataFrame(results)
     cons_df = cons_df[(cons_df["Consensus length"] >= 150) & (cons_df["Percent N"] <= 5) & (cons_df["Mean quality"] >= umbral)]
 
     return cons_df
+
+#Se incluye una función para generar ficheros fasta.
+def fasta_consenso(cons_df):
+    fasta = []
+
+    for _, row in cons_df.iterrows():
+        header = (f">{row['ID']}|Primers={row['Forward']}-{row['Reverse']}|Longitud={row['Longitud consenso']}")
+        
+        fasta.append(header)
+        fasta.append(row["Secuencia consenso"])
+
+    return "\n".join(fasta)
