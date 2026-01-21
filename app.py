@@ -63,7 +63,7 @@ if carga_zip:
                 st.session_state["df"] = df
                 st.session_state["umbral"] = umbral_usuario
                 st.success("✅ Los datos se han cargado correctamente")
-                if "df" in session_state:
+                if "df" in st.session_state:
                     if st.button("Mostrar dataframe"):
                         st.dataframe(df)
 
@@ -83,9 +83,9 @@ if carga_zip:
                 st.error(str(e))
 
 #Se incluye el trimming de secuencias.
-st.subheader("Limpieza de secuencias")
-
 if "df" in st.session_state:
+    st.subheader("Limpieza de secuencias")
+    
     try:
         trimmed_df = cortar_ab1(df, umbral = umbral_usuario)
         st.success("✅ Las secuencias han sido cortadas correctamente")
