@@ -44,7 +44,7 @@ def cargar_ab1_zip(filepaths, umbral=20):
     datos.append({
       "ID": os.path.basename(filepath),
       "Secuencia Fasta": secuencia,
-      "Longitud secuencia": sec_length,
+      "Longitud (pb)": sec_length,
       "Puntuación calidad": calidad,
       "Calidad media": calidad_media,
       "Mediana calidad": calidad_mediana,
