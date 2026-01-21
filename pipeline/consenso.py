@@ -32,7 +32,7 @@ def consenso(forward, reverse, forward_cal, reverse_cal,
     umbral=20, delta=5):
     
     reverse_rc = str(Seq(reverse).reverse_complement())
-    reverse_qual = reverse_qual[::-1]
+    reverse_cal = reverse_cal[::-1]
 
     alignments = pairwise2.align.localms(
         forward, reverse_rc,
@@ -150,7 +150,7 @@ def generar_consensos(trimmed_df, umbral=20):
                     "Ns extraídas": n_trim})
 
     cons_df = pd.DataFrame(results)
-    cons_df = cons_df[(cons_df["Consensus length"] >= 150) & (cons_df["Percent N"] <= 5) & (cons_df["Mean quality"] >= umbral)]
+    cons_df = cons_df[(cons_df["Longitud consenso"] >= 150) & (cons_df["% bases ambiguas (N)"] <= 5) & (cons_df["Calidad media"] >= umbral)]
 
     return cons_df
 
