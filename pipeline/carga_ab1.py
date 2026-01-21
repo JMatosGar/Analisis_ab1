@@ -42,15 +42,15 @@ def cargar_ab1_zip(filepaths, umbral=20):
         actual = 0
 
     datos.append({
-      "File Name": os.path.basename(filepath),
-      "Fasta Sequence": secuencia,
-      "Sequence Length": sec_length,
-      "Quality Scores": calidad,
-      "Mean Quality": calidad_media,
-      "Median Quality": calidad_mediana,
-      "% High-Quality Bases": pct_calidad_alta,
-      "Ambiguous Bases (N)": num_amb,
-      "Longest High-Quality Stretch": larga_calidad})
+      "ID": os.path.basename(filepath),
+      "Secuencia Fasta": secuencia,
+      "Longitud secuencia": sec_length,
+      "Puntuación calidad": calidad,
+      "Calidad media": calidad_media,
+      "Mediana calidad": calidad_mediana,
+      "% Alta calidad": pct_calidad_alta,
+      "Bases ambiguas(N)": num_amb,
+      "Tramo de alta calidad": larga_calidad})
     
   if not datos:
     raise ValueError("No se han encontrado ficheros ab1 válidos")
