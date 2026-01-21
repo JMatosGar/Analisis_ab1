@@ -64,8 +64,9 @@ if carga_zip:
                 st.session_state["umbral"] = umbral_usuario
                 st.success("✅ Los datos se han cargado correctamente")
                 if "df" in st.session_state:
-                    if st.button("Mostrar dataframe"):
-                        st.dataframe(df)
+                    mostrar_df = st.checkbox("📋 Mostrar dataframe AB1")
+                    if mostrar_df
+                        st.dataframe(st.session_state["df"])
 
                         #Se permite la descarga de los datos en forma de excel.
                         output = BytesIO()
@@ -88,22 +89,25 @@ if "df" in st.session_state:
     
     try:
         trimmed_df = cortar_ab1(df, umbral = umbral_usuario)
+        st.session_state["trimmed_df"] = trimmed_df
         st.success("✅ Las secuencias han sido cortadas correctamente")
 
-        if st.button("Mostrar dataframe"):
-            st.dataframe(trimmed_df)
+        if "trimmed_df" in st.session_state:
+            mostrar_trimming = st.checkbox("📋 Mostrar secuencias recortadas")
+            if mostrar_trimming:
+                st.dataframe(st.session_state["trimmed_df"])
 
-            #Se incluye el botón de descarga.
-            output_trim = BytesIO()
-            with pd.ExcelWriter(output_trim, engine='openpyxl') as writer:
-                trimmed_df.to_excel(writer, index=False, sheet_name="Trimmed Results")
-            processed_trim = output_trim.getvalue()
+                #Se incluye el botón de descarga.
+                output_trim = BytesIO()
+                with pd.ExcelWriter(output_trim, engine='openpyxl') as writer:
+                    trimmed_df.to_excel(writer, index=False, sheet_name="Trimmed Results")
+                processed_trim = output_trim.getvalue()
 
-            st.download_button(
-                label="📥 Descargar resultados del trimming Excel",
-                data=processed_trim,
-                file_name="AB1_trimmed_results.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                st.download_button(
+                    label="📥 Descargar resultados del trimming Excel",
+                    data=processed_trim,
+                    file_name="AB1_trimmed_results.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
     except ValueError as e:
         st.error(str(e)) 
