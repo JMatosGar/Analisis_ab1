@@ -10,7 +10,7 @@ def qc_plots(df, umbral=20, trimmed=True):
     #Se toman los datos de los dataframes
     if trimmed:
         seq_col = "Secuencia cortada"
-        qual_col = "Puntuación cortada"
+        cal_col = "Puntuación cortada"
         len_col = "Longitud (pb)"
         mean_col = "Calidad Media"
         median_col = "Mediana calidad"
@@ -18,7 +18,7 @@ def qc_plots(df, umbral=20, trimmed=True):
         amb_col = "Bases ambiguas (N)"
     else:
         seq_col = "Secuencia Fasta"
-        qual_col = "Puntuación calidad"
+        cal_col = "Puntuación calidad"
         len_col = "Longitud (pb)"
         mean_col = "Calidad media"
         median_col = "Mediana calidad"
