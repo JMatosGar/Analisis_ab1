@@ -42,61 +42,97 @@ def taxon_from_taxid(taxid):
 #Se construye una función que almacena la omía de las muestras y la almacena en forma de dataframe.
 def taxonomia(fasta, email):
     Entrez.email = email
-    
     cache_tax.clear()
     filas = []
 
     for record in SeqIO.parse(fasta, "fasta"):
         try:
-            # Ejecutar BLAST remoto
-            result_handle = NCBIWWW.qblast("blastn", "nt", record.seq, hitlist_size=1)
+            #BLAST remoto
+            result_handle = NCBIWWW.qblast(program="blastn", database="nt",
+                sequence=record.seq, hitlist_size=1, expect=1e-10)
+
             blast_record = NCBIXML.read(result_handle)
 
-            # Procesar resultados
-            for aln in blast_record.alignments:
-                hsp = aln.hsps[0]
-                hit_acc = aln.accession
-
-                if hit_acc not in cache_tax:
-                    taxid = taxid_from_acc(hit_acc, email)
-                    if taxid:
-                        cache_tax[hit_acc] = taxon_from_taxid(taxid, email)
-                    else:
-                        cache_tax[hit_acc] = {rango: None for rango in ["Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species"]}
-
-                taxon = cache_tax[hit_acc]
-                cobertura = hsp.align_length / len(record.seq) * 100
-
+            #Sin hits BLAST
+            if not blast_record.alignments:
                 filas.append({
                     "ID": record.id,
-                    "Dominio": taxon.get("Domain"),
-                    "Filo": taxon.get("Phylum"),
-                    "Clase": taxon.get("Class"),
-                    "Orden": taxon.get("Order"),
-                    "Familia": taxon.get("Family"),
-                    "Género": taxon.get("Genus"),
-                    "Especie": taxon.get("Species"),
-                    "ID hit": aln.hit_def.split()[0],
-                    "Def ID": aln.hit_def,
-                    "Longitud alineamiento": hsp.align_length,
-                    "Bases idénticas": hsp.identities,
-                    "% Identidad": hsp.identities / hsp.align_length * 100,
-                    "Gaps": hsp.gaps,
-                    "e Valor": hsp.expect,
-                    "bit Score": hsp.bits,
-                    "Cobertura": cobertura
+                    "Dominio": None,
+                    "Filo": None,
+                    "Clase": None,
+                    "Orden": None,
+                    "Familia": None,
+                    "Género": None,
+                    "Especie": None,
+                    "ID hit": None,
+                    "Def ID": "Sin hits BLAST",
+                    "Longitud alineamiento": 0,
+                    "Bases idénticas": 0,
+                    "% Identidad": 0,
+                    "Gaps": None,
+                    "e Valor": None,
+                    "bit Score": None,
+                    "Cobertura": 0
                 })
+                continue
 
-        except Exception as e:
-            print(f"Error BLAST para {record.id}: {e}")
+            #Mejor hit
+            aln = blast_record.alignments[0]
+            hsp = aln.hsps[0]
+            hit_acc = aln.accession
+
+            #Taxonomía
+            if hit_acc not in cache_tax:
+                taxid = taxid_from_acc(hit_acc)
+                if taxid:
+                    cache_tax[hit_acc] = taxon_from_taxid(taxid)
+                else:
+                    cache_tax[hit_acc] = {r: None for r in
+                        ["Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species"]}
+
+            taxon = cache_tax[hit_acc]
+            cobertura = hsp.align_length / len(record.seq) * 100
+
             filas.append({
                 "ID": record.id,
-                "Dominio": None, "Filo": None, "Clase": None, "Orden": None,
-                "Familia": None, "Género": None, "Especie": None,
-                "ID hit": None, "Def ID": None, "Longitud alineamiento": None,
-                "Bases idénticas": None, "% Identidad": None, "Gaps": None,
-                "e Valor": None, "bit Score": None, "Cobertura": None
+                "Dominio": taxon.get("Domain"),
+                "Filo": taxon.get("Phylum"),
+                "Clase": taxon.get("Class"),
+                "Orden": taxon.get("Order"),
+                "Familia": taxon.get("Family"),
+                "Género": taxon.get("Genus"),
+                "Especie": taxon.get("Species"),
+                "ID hit": aln.accession,
+                "Def ID": aln.hit_def,
+                "Longitud alineamiento": hsp.align_length,
+                "Bases idénticas": hsp.identities,
+                "% Identidad": round(hsp.identities / hsp.align_length * 100, 2),
+                "Gaps": hsp.gaps,
+                "e Valor": hsp.expect,
+                "bit Score": hsp.bits,
+                "Cobertura": round(cobertura, 2)
             })
 
-    df = pd.DataFrame(filas)
-    return df
+        except Exception as e:
+            filas.append({
+                "ID": record.id,
+                "Dominio": None,
+                "Filo": None,
+                "Clase": None,
+                "Orden": None,
+                "Familia": None,
+                "Género": None,
+                "Especie": None,
+                "ID hit": None,
+                "Def ID": f"Error BLAST: {e}",
+                "Longitud alineamiento": None,
+                "Bases idénticas": None,
+                "% Identidad": None,
+                "Gaps": None,
+                "e Valor": None,
+                "bit Score": None,
+                "Cobertura": None
+            })
+
+    return pd.DataFrame(filas)
+
