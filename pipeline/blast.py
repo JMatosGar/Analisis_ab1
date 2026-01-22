@@ -22,16 +22,6 @@ def taxid_from_acc(accession):
     except Exception:
         return None
 
-RANK_MAP = {
-    "superkingdom": "Domain",
-    "phylum": "Phylum",
-    "class": "Class",
-    "order": "Order",
-    "family": "Family",
-    "genus": "Genus",
-    "species": "Species",
-}
-
 def taxon_from_taxid(taxid):
     handle = Entrez.esummary(db="taxonomy", id=taxid, retmode="xml")
     record = Entrez.read(handle)
@@ -44,23 +34,35 @@ def taxon_from_taxid(taxid):
         "Order": None,
         "Family": None,
         "Genus": None,
-        "Species": None}
+        "Species": None,
+    }
 
     if not record:
         return lineage
 
     tax_rec = record[0]
 
+    rank_map = {
+        "superkingdom": "Domain",
+        "phylum": "Phylum",
+        "class": "Class",
+        "order": "Order",
+        "family": "Family",
+        "genus": "Genus",
+        "species": "Species",
+    }
+
     for nodo in tax_rec.get("LineageEx", []):
         rank = nodo["Rank"].lower()
-        if rank in RANK_MAP:
-            lineage[RANK_MAP[rank]] = nodo["ScientificName"]
+        if rank in rank_map:
+            lineage[rank_map[rank]] = nodo["ScientificName"]
 
-    rank = tax_rec.get("Rank", "").lower()
-    if rank in RANK_MAP:
-        lineage[RANK_MAP[rank]] = tax_rec.get("ScientificName")
+    # Especie exacta si el registro ES especie
+    if tax_rec.get("Rank") == "species":
+        lineage["Species"] = tax_rec["ScientificName"]
 
     return lineage
+
 
 #Se construye una función que almacena la omía de las muestras y la almacena en forma de dataframe.
 def taxonomia(fasta, email):
