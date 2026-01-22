@@ -9,26 +9,20 @@ cache_tax = {}
 
 #Se crean funciones para obtener la taxonomía de las muestras introducidas.
 def taxid_from_acc(accession):
-  try:
-    handle = Entrez.esummary(db = "nucleotide", id = accession, retmode = "xml")
-    record = Entrez.read(handle)
-    handle.close()
+    try:
+        handle = Entrez.elink(dbfrom="nucleotide", db="taxonomy", id=accession)
+        record = Entrez.read(handle)
+        handle.close()
 
-    return record[0].get("TaxID")
+        links = record[0].get("LinkSetDb", [])
+        if not links:
+            return None
+        return links[0]["Link"][0]["Id"]
 
-  except Exception:
-    return None
-
-def taxon_from_taxid(taxid):
-  handle = Entrez.esummary(db = "taxonomy", id = taxid, retmode = "xml")
-  record = Entrez.read(handle)
-  handle.close()  
-
-  lineage = {rango: None for rango in["Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species"]}
-  if not record:
-    return lineage
-
-  tax_rec = record[0]
+    except Exception:
+        return None
+  
+tax_rec = record[0]
   for nodo in tax_rec.get("LineageEx", []):
     rango = nodo["Rank"].capitalize()
     if rango in lineage:
