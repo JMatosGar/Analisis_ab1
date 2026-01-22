@@ -209,14 +209,14 @@ if fasta_path and st.button("🔬 Alineamiento contra NCBI"):
                 st.dataframe(st.session_state["blast_df"])
 
                 if  "blast_df" in st.session_state and not st.session_state["blast_df"].empty:
-                output_blast = BytesIO()
-                with pd.ExcelWriter(output_blast, engine='openpyxl') as writer:
-                    st.session_state["blast_df"].to_excel(writer, index=False, sheet_name="Trimmed Results")
-                processed_blast = output_blast.getvalue()
+                    output_blast = BytesIO()
+                    with pd.ExcelWriter(output_blast, engine='openpyxl') as writer:
+                        st.session_state["blast_df"].to_excel(writer, index=False, sheet_name="Trimmed Results")
+                    processed_blast = output_blast.getvalue()
             
-                st.download_button(label="📥 Descargar resultados de BLAST",
-                                   data=processed_blast, file_name=f"Resultado_blast_{zip_name}.xlsx",
-                                   mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                    st.download_button(label="📥 Descargar resultados de BLAST",
+                                       data=processed_blast, file_name=f"Resultado_blast_{zip_name}.xlsx",
+                                       mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
             
             except Exception as e:
                 st.error(f"❌ Error al ejecutar BLAST: {e}")    
