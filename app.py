@@ -8,6 +8,7 @@ from pipeline.carga_ab1 import cargar_ab1_zip
 from pipeline.cortar_ab1 import cortar_ab1
 from pipeline.QC import qc_plots
 from pipeline.consenso import generar_consensos, fasta_consenso
+from pipeline.blast import taxonomia
 
 #Se establecen las características de la app.
 st.set_page_config(
@@ -195,7 +196,31 @@ else:
             tmp_fasta.write(upload_fasta.getbuffer())
             fasta_path = tmp_fasta.name
 
-    
+#Se pide el email para usar NCBI.
+email = st.text_input("Introduce el email para NCBI Entrez", value = "")    
+
 if fasta_path and st.button("🔬 Alineamiento contra NCBI"):
-    with st.spinner("Ejecutando BLAST remoto contra NCBI...")
-        
+    if email:
+        with st.spinner("Ejecutando BLAST remoto contra NCBI..."):
+            try:
+                blast_df = taxonomia(fasta_path, email)
+    
+                    if blast_df is not None:
+                        st.success("✅ Se ha realizado el BLAST correctamente")
+                        mostrar_blast = st.checkbox("📋 Mostrar resultado de BLAST contra NCBI")
+                        
+                        if mostrar_blast:
+                            st.dataframe(blast_df)
+
+                            if blast_df is not None and not df_blast.empty:
+                                output_blast = BytesIO()
+                                with pd.ExcelWriter(output_blast, engine='openpyxl') as writer:
+                                    blast_df.to_excel(writer, index=False, sheet_name="Trimmed Results")
+                                processed_blast = output_blast.getvalue()
+
+                                st.download_button(label="📥 Descargar resultados del consenso",
+                                                   data=processed_blast, file_name=f"Resultado_blast_{zip_name}.xlsx",
+                                                   mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                
+            except Exception as e:
+                st.error(f"❌ Error al ejecutar BLAST: {e}")
