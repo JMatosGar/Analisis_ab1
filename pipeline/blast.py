@@ -68,10 +68,10 @@ def taxonomia(fasta, email, output = None):
     try:
       subprocess.run(cmd, check=True)
     except subprocess.CalledProcessError as e:
-      st.error(f"❌ Fallo al ejecutar BLAST remoto: {e}")
+      raise RuntimeError(f"❌ Fallo al ejecutar BLAST remoto: {e}")
       return None
     except Exception as e:
-      st.error(f"❌ Error inesperado: {e}")
+      raise RuntimeError(f"❌ Error inesperado: {e}")
       return None
 
     with open(xml_path) as handle:
