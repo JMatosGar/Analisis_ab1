@@ -21,26 +21,45 @@ def taxid_from_acc(accession):
 
     except Exception:
         return None
-  
-def taxon_from_taxid(taxid): 
-    handle = Entrez.esummary(db = "taxonomy", id = taxid, retmode = "xml") 
-    record = Entrez.read(handle) 
-    handle.close() 
-    
-    lineage = {rango: None for rango in["Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species"]} 
-   
-    if not record: 
-        return lineage 
-    
-    tax_rec = record[0] 
-    
-    for nodo in tax_rec.get("LineageEx", []): 
-        rango = nodo["Rank"].capitalize() 
-        if rango in lineage: 
-            lineage[rango] = nodo["ScientificName"] 
-        if tax_rec["Rank"] == "species": 
-            lineage["Species"] = tax_rec["ScientificName"] 
-            
+
+RANK_MAP = {
+    "superkingdom": "Domain",
+    "phylum": "Phylum",
+    "class": "Class",
+    "order": "Order",
+    "family": "Family",
+    "genus": "Genus",
+    "species": "Species",
+}
+
+def taxon_from_taxid(taxid):
+    handle = Entrez.esummary(db="taxonomy", id=taxid, retmode="xml")
+    record = Entrez.read(handle)
+    handle.close()
+
+    lineage = {
+        "Domain": None,
+        "Phylum": None,
+        "Class": None,
+        "Order": None,
+        "Family": None,
+        "Genus": None,
+        "Species": None}
+
+    if not record:
+        return lineage
+
+    tax_rec = record[0]
+
+    for nodo in tax_rec.get("LineageEx", []):
+        rank = nodo["Rank"].lower()
+        if rank in RANK_MAP:
+            lineage[RANK_MAP[rank]] = nodo["ScientificName"]
+
+    rank = tax_rec.get("Rank", "").lower()
+    if rank in RANK_MAP:
+        lineage[RANK_MAP[rank]] = tax_rec.get("ScientificName")
+
     return lineage
 
 #Se construye una función que almacena la omía de las muestras y la almacena en forma de dataframe.
