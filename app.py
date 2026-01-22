@@ -139,7 +139,10 @@ if "trimmed_df" in st.session_state:
     try:
         cons_df = generar_consensos(trimmed_df, umbral=umbral_usuario)
         st.session_state["cons_df"] = cons_df
-        st.success("✅ Las secuencias consenso se han generado correctamente")
+        
+        if not st.session_state["cons_df"].empty:
+            st.session_state["cons_fasta"] = fasta_consenso(cons_df)
+            st.success("✅ Las secuencias consenso se han generado correctamente")
 
         if "cons_df" in st.session_state:
             mostrar_consenso = st.checkbox("📋 Mostrar secuencias consenso")
@@ -155,15 +158,44 @@ if "trimmed_df" in st.session_state:
                 st.download_button(label="📥 Descargar resultados del consenso",
                     data=processed_cons, file_name=f"{zip_name}_consensos.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-                
-                if not st.session_state["cons_df"].empty:
-                    fasta_str = fasta_consenso(cons_df)
     
-                    st.download_button(label="📥 Descargar FASTA multiconsenso",
-        data=fasta_str.encode(), file_name=f"{zip_name}_multiconsenso.fasta", mime="text/plain")
+                st.download_button(label="📥 Descargar FASTA multiconsenso",
+                                   data=st.session_state["cons_fasta"].encode(), file_name=f"{zip_name}_multiconsenso.fasta", 
+                                   mime="text/plain")
                
                 else:
                     st.warning("⚠️ No se han generado consensos válidos")
                 
     except ValueError as e:
         st.error(str(e)) 
+
+st.markdown("---")
+st.title("Alineamiento de secuencias")
+usar_cons = st.checkbox("Usar secuencias preprocesadas", value = True)
+
+fasta_path = None
+
+#Se permite el uso de las secuencias consenso definidas previamente:
+if usar_cons:
+    if "cons_df" not in st.session_state or st.session_state["cons_df"].empty:
+        st.warning("⚠️ No hay secuencias consenso disponibles")
+    else:
+        fasta_str = st.session_state["cons_fasta"]
+        
+        with tempfile.NamedTemporaryFile(mode = "w", suffix = ".fasta", delete = False) as tmp_fasta:
+            tmp_fasta.write(fasta_str)
+            fasta_path = tmp_fasta.name     
+
+#En caso de no activar la checkbox el usuario debe cargar su propio fasta.
+else:
+    upload_fasta = st.file_uploader("Carga el fichero fasta con secuencias consenso", type = ["fasta", "fa", "fna"])
+
+    if upload_fasta:
+        with tempfile.NamedTemporaryFile(mode = "w", suffix = ".fasta", delete = False) as tmp_fasta:
+            tmp_fasta.write(upload_fasta.getbuffer())
+            fasta_path = tmp_fasta.name
+
+    
+if fasta_path and st.button("🔬 Alineamiento contra NCBI"):
+    with st.spinner("Ejecutando BLAST remoto contra NCBI...")
+        
