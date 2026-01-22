@@ -8,7 +8,6 @@ from pipeline.carga_ab1 import cargar_ab1_zip
 from pipeline.cortar_ab1 import cortar_ab1
 from pipeline.QC import qc_plots
 from pipeline.consenso import generar_consensos, fasta_consenso
-from pipeline.blast import taxonomia
 
 #Se establecen las características de la app.
 st.set_page_config(
