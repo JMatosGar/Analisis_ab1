@@ -102,7 +102,7 @@ def taxonomia(fasta, email):
             #Mejor hit
             aln = blast_record.alignments[0]
             hsp = aln.hsps[0]
-            hit_acc = aln.accession
+            hit_acc = aln.accession.split(".")[0]
 
             #Taxonomía
             if hit_acc not in cache_tax:
