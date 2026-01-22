@@ -164,8 +164,8 @@ if "trimmed_df" in st.session_state:
                                    data=st.session_state["cons_fasta"].encode(), file_name=f"{zip_name}_multiconsenso.fasta", 
                                    mime="text/plain")
                
-            else:
-                st.warning("⚠️ No se han generado consensos válidos")
+        else:
+            st.warning("⚠️ No se han generado consensos válidos")
                 
     except ValueError as e:
         st.error(str(e)) 
