@@ -204,15 +204,16 @@ if fasta_path and st.button("🔬 Alineamiento contra NCBI"):
         with st.spinner("Ejecutando BLAST remoto contra NCBI..."):
             try:
                 blast_df = taxonomia(fasta_path, email)
+                st.session_state["blast_df"] = blast_df
     
-                if blast_df is not None:
+                if not st.session_state["blast_df"].empty:
                     st.success("✅ Se ha realizado el BLAST correctamente")
                     mostrar_blast = st.checkbox("📋 Mostrar resultado de BLAST contra NCBI")
-                        
+               
                     if mostrar_blast:
-                        st.dataframe(blast_df)
+                        st.dataframe(st.session_state["blast_df"])
 
-                        if blast_df is not None and not df_blast.empty:
+                        if st.session_state["blast_df"] is not None and not st.session_state["blast_df"].empty:
                             output_blast = BytesIO()
                             with pd.ExcelWriter(output_blast, engine='openpyxl') as writer:
                                 blast_df.to_excel(writer, index=False, sheet_name="Trimmed Results")
