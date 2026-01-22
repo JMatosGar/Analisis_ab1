@@ -205,22 +205,22 @@ if fasta_path and st.button("🔬 Alineamiento contra NCBI"):
             try:
                 blast_df = taxonomia(fasta_path, email)
     
-                    if blast_df is not None:
-                        st.success("✅ Se ha realizado el BLAST correctamente")
-                        mostrar_blast = st.checkbox("📋 Mostrar resultado de BLAST contra NCBI")
+                if blast_df is not None:
+                    st.success("✅ Se ha realizado el BLAST correctamente")
+                    mostrar_blast = st.checkbox("📋 Mostrar resultado de BLAST contra NCBI")
                         
-                        if mostrar_blast:
-                            st.dataframe(blast_df)
+                    if mostrar_blast:
+                        st.dataframe(blast_df)
 
-                            if blast_df is not None and not df_blast.empty:
-                                output_blast = BytesIO()
-                                with pd.ExcelWriter(output_blast, engine='openpyxl') as writer:
-                                    blast_df.to_excel(writer, index=False, sheet_name="Trimmed Results")
-                                processed_blast = output_blast.getvalue()
+                        if blast_df is not None and not df_blast.empty:
+                            output_blast = BytesIO()
+                            with pd.ExcelWriter(output_blast, engine='openpyxl') as writer:
+                                blast_df.to_excel(writer, index=False, sheet_name="Trimmed Results")
+                            processed_blast = output_blast.getvalue()
 
-                                st.download_button(label="📥 Descargar resultados del consenso",
-                                                   data=processed_blast, file_name=f"Resultado_blast_{zip_name}.xlsx",
-                                                   mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                            st.download_button(label="📥 Descargar resultados del consenso",
+                                                data=processed_blast, file_name=f"Resultado_blast_{zip_name}.xlsx",
+                                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
                 
             except Exception as e:
                 st.error(f"❌ Error al ejecutar BLAST: {e}")
