@@ -20,25 +20,24 @@ def taxid_from_acc(accession):
     return None
 
 def taxon_from_taxid(taxid):
-  try:
-    handle = Entrez.esummary(db = "taxonomy", id = taxid, retmode = "xml")
-    record = Entrez.read(handle)
-    handle.close()  
+  handle = Entrez.esummary(db = "taxonomy", id = taxid, retmode = "xml")
+  record = Entrez.read(handle)
+  handle.close()  
 
-    lineage = {rango: None for rango in["Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species"]}
-    if not record:
-      return lineage
-
-    tax_rec = record[0]
-    for nodo in tax_rec.get("LineageEx", []):
-      rango = nodo["Rank"].capitalize()
-      if rango in lineage:
-          lineage[rango] = nodo["ScientificName"]
-
-    if tax_rec["Rank"] == "species":
-      lineage["Species"] = tax_rec["ScientificName"]
-
+  lineage = {rango: None for rango in["Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species"]}
+  if not record:
     return lineage
+
+  tax_rec = record[0]
+  for nodo in tax_rec.get("LineageEx", []):
+    rango = nodo["Rank"].capitalize()
+    if rango in lineage:
+        lineage[rango] = nodo["ScientificName"]
+
+  if tax_rec["Rank"] == "species":
+    lineage["Species"] = tax_rec["ScientificName"]
+      
+  return lineage
 
 #Se construye una función que almacena la omía de las muestras y la almacena en forma de dataframe.
 def taxonomia(fasta, email):
