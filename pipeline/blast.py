@@ -1,36 +1,33 @@
 import os
-import pandas as pd
 import subprocess
 import time
+import pandas as pd
+from io import StringIO
 from Bio import SeqIO, Entrez
-from Bio.Blast import NCBIXML, NCBIWWW
+from Bio.Blast import NCBIXML
 
-#Almacenamiento de los datos registrados.
-cache_tax = {}
+# Cache de taxonomía
+taxonomy_cache = {}
 
-#Se crean funciones para obtener la taxonomía de las muestras introducidas.
-def taxid_from_acc(accession):
+def get_taxid_from_accession(accession):
     try:
-        handle = Entrez.elink(
-            dbfrom="nucleotide",
-            db="taxonomy",
-            id=accession
+        handle = Entrez.esummary(
+            db="nucleotide",
+            id=accession,
+            retmode="xml"
         )
         record = Entrez.read(handle)
         handle.close()
-
         time.sleep(0.34)
-
-        links = record[0].get("LinkSetDb", [])
-        if not links:
-            return None
-
-        return links[0]["Link"][0]["Id"]
-
+        return record[0].get("TaxId")
     except Exception:
         return None
 
-def taxon_from_taxid(taxid):
+
+def get_taxonomy_from_taxid(taxid):
+    if taxid in taxonomy_cache:
+        return taxonomy_cache[taxid]
+
     lineage = {
         "Domain": None,
         "Phylum": None,
@@ -38,7 +35,8 @@ def taxon_from_taxid(taxid):
         "Order": None,
         "Family": None,
         "Genus": None,
-        "Species": None}
+        "Species": None
+    }
 
     try:
         handle = Entrez.efetch(
@@ -48,117 +46,99 @@ def taxon_from_taxid(taxid):
         )
         record = Entrez.read(handle)
         handle.close()
-
         time.sleep(0.4)
     except Exception:
+        taxonomy_cache[taxid] = lineage
         return lineage
 
-    tax_rec = record[0]
+    tax_record = record[0]
 
-    for node in tax_rec.get("LineageEx", []):
+    for node in tax_record.get("LineageEx", []):
         rank = node["Rank"].capitalize()
         if rank in lineage:
             lineage[rank] = node["ScientificName"]
 
-    if tax_rec.get("Rank") == "species":
-        lineage["Species"] = tax_rec["ScientificName"]
+    if tax_record.get("Rank") == "species":
+        lineage["Species"] = tax_record["ScientificName"]
 
+    taxonomy_cache[taxid] = lineage
     return lineage
 
-#Se construye una función que almacena la omía de las muestras y la almacena en forma de dataframe.
-def taxonomia(fasta, email):
+
+def taxonomia(fasta_path, email, top_hits=1, db="nt", task="megablast"):
     Entrez.email = email
-    cache_tax.clear()
-    filas = []
+    taxonomy_cache.clear()
 
-    for record in SeqIO.parse(fasta, "fasta"):
-        try:
-            #BLAST remoto
-            result_handle = NCBIWWW.qblast(program="blastn", database="nt",
-                sequence=record.seq, hitlist_size=1, expect=1e-10)
+    rows = []
 
-            blast_record = NCBIXML.read(result_handle)
+    for record in SeqIO.parse(fasta_path, "fasta"):
+        query_id = record.id
 
-            #Sin hits BLAST
-            if not blast_record.alignments:
-                filas.append({
-                    "ID": record.id,
-                    "Dominio": None,
-                    "Filo": None,
-                    "Clase": None,
-                    "Orden": None,
-                    "Familia": None,
-                    "Género": None,
-                    "Especie": None,
-                    "ID hit": None,
-                    "Def ID": "Sin hits BLAST",
-                    "Longitud alineamiento": 0,
-                    "Bases idénticas": 0,
-                    "% Identidad": 0,
-                    "Gaps": None,
-                    "e Valor": None,
-                    "bit Score": None,
-                    "Cobertura": 0
-                })
-                continue
+        # Crear FASTA temporal por secuencia
+        with open("query_tmp.fasta", "w") as f:
+            SeqIO.write(record, f, "fasta")
 
-            #Mejor hit
-            aln = blast_record.alignments[0]
-            hsp = aln.hsps[0]
-            hit_acc = aln.accession.split(".")[0]
+        # Ejecutar BLAST remoto (XML)
+        cmd = [
+            "blastn",
+            "-query", "query_tmp.fasta",
+            "-db", db,
+            "-remote",
+            "-task", task,
+            "-max_target_seqs", str(top_hits),
+            "-outfmt", "5"
+        ]
 
-            #Taxonomía
-            if hit_acc not in cache_tax:
-                taxid = taxid_from_acc(hit_acc)
-                if taxid:
-                    cache_tax[hit_acc] = taxon_from_taxid(taxid)
-                else:
-                    cache_tax[hit_acc] = {r: None for r in
-                        ["Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species"]}
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True
+        )
 
-            taxon = cache_tax[hit_acc]
-            cobertura = hsp.align_length / len(record.seq) * 100
+        if not result.stdout.strip():
+            continue
 
-            filas.append({
-                "ID": record.id,
-                "Dominio": taxon.get("Domain"),
-                "Filo": taxon.get("Phylum"),
-                "Clase": taxon.get("Class"),
-                "Orden": taxon.get("Order"),
-                "Familia": taxon.get("Family"),
-                "Género": taxon.get("Genus"),
-                "Especie": taxon.get("Species"),
-                "ID hit": aln.accession,
-                "Def ID": aln.hit_def,
-                "Longitud alineamiento": hsp.align_length,
-                "Bases idénticas": hsp.identities,
-                "% Identidad": round(hsp.identities / hsp.align_length * 100, 2),
-                "Gaps": hsp.gaps,
-                "e Valor": hsp.expect,
-                "bit Score": hsp.bits,
-                "Cobertura": round(cobertura, 2)
+        blast_record = NCBIXML.read(StringIO(result.stdout))
+
+        if not blast_record.alignments:
+            rows.append({
+                "ID": query_id,
+                "Domain": None,
+                "Phylum": None,
+                "Class": None,
+                "Order": None,
+                "Family": None,
+                "Genus": None,
+                "Species": None,
+                "Hit": None,
+                "Percent_identity": 0,
+                "Coverage": 0
             })
+            continue
 
-        except Exception as e:
-            filas.append({
-                "ID": record.id,
-                "Dominio": None,
-                "Filo": None,
-                "Clase": None,
-                "Orden": None,
-                "Familia": None,
-                "Género": None,
-                "Especie": None,
-                "ID hit": None,
-                "Def ID": f"Error BLAST: {e}",
-                "Longitud alineamiento": None,
-                "Bases idénticas": None,
-                "% Identidad": None,
-                "Gaps": None,
-                "e Valor": None,
-                "bit Score": None,
-                "Cobertura": None
-            })
+        aln = blast_record.alignments[0]
+        hsp = aln.hsps[0]
 
-    return pd.DataFrame(filas)
+        accession = aln.accession
+        taxid = get_taxid_from_accession(accession)
 
+        taxonomy = (
+            get_taxonomy_from_taxid(taxid)
+            if taxid else
+            {k: None for k in
+             ["Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species"]}
+        )
+
+        rows.append({
+            "ID": query_id,
+            **taxonomy,
+            "Hit": aln.hit_def,
+            "Percent_identity": round(hsp.identities / hsp.align_length * 100, 2),
+            "Coverage": round(hsp.align_length / len(record.seq) * 100, 2),
+            "Evalue": hsp.expect,
+            "Bit_score": hsp.bits
+        })
+
+        time.sleep(1)  # pausa BLAST
+
+    return pd.DataFrame(rows)
