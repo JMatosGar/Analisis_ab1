@@ -101,8 +101,9 @@ def taxonomia(fasta_path, email):
                     "bit Score": None,
                     "Cobertura": 0
                 }
-                filas.append(row)
-                seq_cache[query_seq] = row
+                cached_row = seq_cache[query_seq].copy()
+                cached_row["FASTA"] = query_seq
+                filas.append(cached_row)
                 continue
 
             # Mejor hit
@@ -144,8 +145,9 @@ def taxonomia(fasta_path, email):
             }
 
             filas.append(row)
+            row["FASTA"] = query_seq
             seq_cache[query_seq] = row
-
+            
         except Exception as e:
             row = {
                 "ID": record.id,
@@ -168,6 +170,8 @@ def taxonomia(fasta_path, email):
                 "Cobertura": None
             }
             filas.append(row)
+            row["FASTA"] = query_seq
             seq_cache[query_seq] = row
+
 
     return pd.DataFrame(filas)
