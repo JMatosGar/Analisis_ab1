@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import subprocess
+import time
 from Bio import SeqIO, Entrez
 from Bio.Blast import NCBIXML, NCBIWWW
 
@@ -10,23 +11,26 @@ cache_tax = {}
 #Se crean funciones para obtener la taxonomía de las muestras introducidas.
 def taxid_from_acc(accession):
     try:
-        handle = Entrez.elink(dbfrom="nucleotide", db="taxonomy", id=accession)
+        handle = Entrez.elink(
+            dbfrom="nucleotide",
+            db="taxonomy",
+            id=accession
+        )
         record = Entrez.read(handle)
         handle.close()
+
+        time.sleep(0.34)
 
         links = record[0].get("LinkSetDb", [])
         if not links:
             return None
+
         return links[0]["Link"][0]["Id"]
 
     except Exception:
         return None
 
 def taxon_from_taxid(taxid):
-    handle = Entrez.esummary(db="taxonomy", id=taxid, retmode="xml")
-    record = Entrez.read(handle)
-    handle.close()
-
     lineage = {
         "Domain": None,
         "Phylum": None,
@@ -34,35 +38,32 @@ def taxon_from_taxid(taxid):
         "Order": None,
         "Family": None,
         "Genus": None,
-        "Species": None,
-    }
+        "Species": None}
 
-    if not record:
+    try:
+        handle = Entrez.efetch(
+            db="taxonomy",
+            id=taxid,
+            retmode="xml"
+        )
+        record = Entrez.read(handle)
+        handle.close()
+
+        time.sleep(0.4)
+    except Exception:
         return lineage
 
     tax_rec = record[0]
 
-    rank_map = {
-        "superkingdom": "Domain",
-        "phylum": "Phylum",
-        "class": "Class",
-        "order": "Order",
-        "family": "Family",
-        "genus": "Genus",
-        "species": "Species",
-    }
+    for node in tax_rec.get("LineageEx", []):
+        rank = node["Rank"].capitalize()
+        if rank in lineage:
+            lineage[rank] = node["ScientificName"]
 
-    for nodo in tax_rec.get("LineageEx", []):
-        rank = nodo["Rank"].lower()
-        if rank in rank_map:
-            lineage[rank_map[rank]] = nodo["ScientificName"]
-
-    # Especie exacta si el registro ES especie
     if tax_rec.get("Rank") == "species":
         lineage["Species"] = tax_rec["ScientificName"]
 
     return lineage
-
 
 #Se construye una función que almacena la omía de las muestras y la almacena en forma de dataframe.
 def taxonomia(fasta, email):
