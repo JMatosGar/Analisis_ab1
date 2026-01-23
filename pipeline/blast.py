@@ -83,7 +83,7 @@ def taxonomia(fasta_path, email):
             if not blast_record.alignments:
                 row = {
                     "ID": record.id,
-                    "FASTA": query_seq,
+                    "FASTA": f"{record.id}\n{query_seq}",
                     "Dominio": None,
                     "Filo": None,
                     "Clase": None,
@@ -125,7 +125,7 @@ def taxonomia(fasta_path, email):
 
             row = {
                 "ID": record.id,
-                "FASTA": f"{query_seq}\n{record.id}",
+                "FASTA": f"{record.id}\n{query_seq}",
                 "Dominio": taxon.get("Domain"),
                 "Filo": taxon.get("Phylum"),
                 "Clase": taxon.get("Class"),
@@ -151,7 +151,7 @@ def taxonomia(fasta_path, email):
         except Exception as e:
             row = {
                 "ID": record.id,
-                "FASTA": query_seq,
+                "FASTA": f"{record.id}\n{query_seq}",
                 "Dominio": None,
                 "Filo": None,
                 "Clase": None,
