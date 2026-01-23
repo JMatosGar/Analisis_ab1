@@ -125,7 +125,7 @@ def taxonomia(fasta_path, email):
 
             row = {
                 "ID": record.id,
-                "FASTA": f"{query_seq}\n{record.id},
+                "FASTA": f"{query_seq}\n{record.id}",
                 "Dominio": taxon.get("Domain"),
                 "Filo": taxon.get("Phylum"),
                 "Clase": taxon.get("Class"),
