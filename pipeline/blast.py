@@ -2,9 +2,8 @@ import os
 import pandas as pd
 import time
 import tempfile
-import subprocess
 from collections import OrderedDict
-from Bio import SeqIO, Entrez
+from Bio import SeqIO, Entrez, pairwise2
 from Bio.Blast import NCBIXML, NCBIWWW
 
 # Cachés para acelerar la búsqueda de taxonomía
@@ -183,67 +182,38 @@ def taxonomia(fasta_path, email):
 def taxonomia_local(fasta_muestra, fasta_db, max_hits = 25):
     filas = []
     sec_fasta = OrderedDict()
-
-    #Se establece una base de datos temporal.
-    db_temp = tempfile.NamedTemporaryFile(delete = False).name
-    subprocess.run(["makeblastdb",
-                    "-in", fasta_db,
-                    "-dbtype", "nucl",
-                    "-out", db_temp], check = True)
     
-    #Se ejecuta el BLAST local.
-    blast_out = tempfile.NamedTemporaryFile(delete = False, suffix = ".xml").name
-    subprocess.run(["blastn",
-                    "-query", fasta_muestra,
-                    "-db", db_temp,
-                    "-out", blast_out,
-                    "-outfmt", "5",
-                    "-max_target_seqs", str(max_hits),
-                    "-evalue", "1e-10"], check = True)
-    
-    #Se cargan los queries y se adicionan al fasta final.
+    #Se cargan los fastas
     query_rec = {rec.id: rec for rec in SeqIO.parse(fasta_muestra, "fasta")}
+    db_rec = {rec.id: rec for rec in SeqIO.parse(fasta_db, "fasta")}
 
-    for qid, rec in query_rec.items():
-        sec_fasta[f"QUERY_{qid}"] = str(rec.seq)
+    for qidx, (qid, qsec) in enumerate(query_rec.items(), start=1):
+        query_id = f"Muestra_{qidx}"
+        sec_fasta[query_id] = str(qsec.seq)
 
-    #Se parsean los resultados del BLAST.
-    with open(blast_out) as handle:
-        for blast_rec in NCBIXML.parse(handle):
-            id_rec = blast_rec.query
+        for hidx, (hid, hsec) in enumerate(list(db_rec.items())[:max_hits], start=1):
+            hit_id = f"Muestra_{qidx}_Hit_{hidx}_{hid}"
+            sec_fasta[hit_id] = str(hsec.seq)
 
-            if not blast_rec.alignments:
-                continue
+            aln = pairwise2.align.globalxx(qsec.seq, hsec.seq, one_alignment_only=True)[0]
+            matches = sum(1 for a,b in zip(aln.seqA, aln.seqB) if a==b)
+            
+            identidad = round(matches/len(aln.seqA)*100, 4)
+            cobertura = round(len(aln.seqA)/len(qsec.seq)*100, 4)
 
-            for aln in blast_rec.alignments[:max_hits]:
-                hsp = aln.hsps[0]
-                id_hit = aln.hit_id.split()[0]
-                def_hit = aln.hit_def
-
-                identidad = round(hsp.identities/hsp.align_length*100, 4)
-                cobertura = round(hsp.align_length/blast_rec.query_length*100,4)
-
-                filas.append({
-                    "ID": id_rec,
-                    "ID hit": id_hit,
-                    "Def hit": def_hit,
-                    "% Identidad": identidad,
-                    "% Cobertura": cobertura,
-                    "eValue": hsp.expect,
-                    "Bit Score": hsp.bits})
-
-                #Se almacenan las secuencias hit.
-                hit_key = f"HIT_{id_hit}"
-                if hit_key not in sec_fasta:
-                    sec_fasta[hit_key] = hsp.sbjct.replace("-","")
+            filas.append({
+                "ID": query_id,
+                "ID hit": hit_id,
+                "% Identidad": identidad,
+                "% Cobertura": cobertura})
 
     df = pd.DataFrame(filas)
 
     #Se genera el fichero FASTA final.
     fasta_out = ""
 
-    for id_sec, sec in sec_fasta.items():
-        fasta_out += f">{id_sec}\n{sec}\n"
+    for sid, sec in sec_fasta.items():
+        fasta_out += f">{sid}\n{sec}\n"
 
     return df, fasta_out
                     
