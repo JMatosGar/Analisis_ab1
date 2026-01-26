@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import time
 import tempfile
+from collections import OrderedDict
 from Bio import SeqIO, Entrez
 from Bio.Blast import NCBIXML, NCBIWWW
 
@@ -197,7 +198,7 @@ def taxonomia_local(fasta_muestra, fasta_db, max_hits = 25):
                     "-out", blast_out,
                     "-outfmt", "5",
                     "-max_target_seqs", str(max_hits),
-                    "evalue", "1e-10"], check = True)
+                    "-evalue", "1e-10"], check = True)
     
     #Se cargan los queries y se adicionan al fasta final.
     query_rec = {rec.id: rec for rec in SeqIO.parse(fasta_muestra, "fasta")}
@@ -213,12 +214,12 @@ def taxonomia_local(fasta_muestra, fasta_db, max_hits = 25):
             if not blast_rec.alignments:
                 continue
 
-            for aln in blast_record.alignments[:max_hits]:
+            for aln in blast_rec.alignments[:max_hits]:
                 hsp = aln.hsps[0]
                 id_hit = aln.hit_id.split()[0]
                 def_hit = aln.hit_def
 
-                identidad = round(hsp-identities/hsp.align_length*100, 4)
+                identidad = round(hsp.identities/hsp.align_length*100, 4)
                 cobertura = round(hsp.align_length/blast_rec.query_length*100,4)
 
                 filas.append({
@@ -231,8 +232,9 @@ def taxonomia_local(fasta_muestra, fasta_db, max_hits = 25):
                     "Bit Score": hsp.bits})
 
                 #Se almacenan las secuencias hit.
-                if id_hit not in sec_fasta:
-                    sec_fasta[id_hit] = hsp.sbjct.replace("-","")
+                hit_key = f"HIT_{id_hit}"
+                if hit_key not in sec_fasta:
+                    sec_fasta[hit_key] = hsp.sbjct.replace("-","")
 
     df = pd.DataFrame(filas)
 
