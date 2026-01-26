@@ -192,7 +192,7 @@ else:
     upload_fasta = st.file_uploader("Carga el fichero fasta con secuencias consenso", type = ["fasta", "fa", "fna"])
 
     if upload_fasta:
-        with tempfile.NamedTemporaryFile(mode = "w", suffix = ".fasta", delete = False) as tmp_fasta:
+        with tempfile.NamedTemporaryFile(mode = "wb", suffix = ".fasta", delete = False) as tmp_fasta:
             tmp_fasta.write(upload_fasta.getbuffer())
             fasta_path = tmp_fasta.name
 
