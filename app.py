@@ -233,7 +233,7 @@ if modo_blast == "BLAST local contra modelo":
     n_hits = st.selectbox("Número de hits", options = [10, 25, 50, 100], index = 1)
     
     if (fasta_path and carga_fasta_db and "blast_df_local" not in st.session_state):
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".fasta", delete=False) as tmp_db:
+        with tempfile.NamedTemporaryFile(mode="wb", suffix=".fasta", delete=False) as tmp_db:
             tmp_db.write(carga_fasta_db.getbuffer())
             db_path = tmp_db.name
 
