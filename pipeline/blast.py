@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import time
 import tempfile
+import subprocess
 from collections import OrderedDict
 from Bio import SeqIO, Entrez
 from Bio.Blast import NCBIXML, NCBIWWW
