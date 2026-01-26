@@ -268,3 +268,30 @@ if st.button("🔄 Recalcular BLAST"):
     for key in ["blast_df", "blast_df_local", "blast_fasta_local"]:
         if key in st.session_state:
             del st.session_state[key]
+
+
+if "blast_fasta_local" in st.session_state:
+    st.markdown("---")
+    st.title("MAFFT")
+
+    fasta_mafft = st.session_state["blast_fasta_local"]
+
+    #Se selecciona el modo del MAFFT.
+    modo_mafft = st.selectbox("Modo de alineamiento de MAFFT", ["Auto", "FFT-NS-2", "L-INS-i"], index = 0)
+
+    if modo_mafft:
+        with st.spinner("Ejecutando MAFFT"):
+            fasta_alineado = mafft(fasta_mafft, modo = modo_mafft)
+        st.session_state["alineamiento_mafft"] = fasta_alineado
+
+    if "alineamiento_mafft" in st.session_state and not st.session_state["alineamiento_mafft"].empty:
+        st.success("✅ Alineamiento completado")
+        st.text_area("Secuencias alineadas", st.session_state["alineamiento_mafft"], height = 300)
+
+        st.download_button( "📥 Descargar FASTA alineado",
+                data=fasta_alineado,
+                file_name="secuencias_alineadas_mafft.fasta",
+                mime="text/plain")
+        
+
+            
