@@ -183,7 +183,7 @@ if usar_cons:
     else:
         fasta_str = st.session_state["cons_fasta"]
         
-        with tempfile.NamedTemporaryFile(mode = "w", suffix = ".fasta", delete = False) as tmp_fasta:
+        with tempfile.NamedTemporaryFile(mode = "wb", suffix = ".fasta", delete = False) as tmp_fasta:
             tmp_fasta.write(fasta_str)
             fasta_path = tmp_fasta.name     
 
@@ -223,7 +223,7 @@ if modo_blast == "BLAST remoto contra NCBI":
             st.session_state["blast_df"].to_excel(writer, index=False, sheet_name="Trimmed Results")
         processed_blast = output_blast.getvalue()
             
-        st.download_button(label="📥 Descargar resultados de BLAST",ç
+        st.download_button(label="📥 Descargar resultados de BLAST",
                            data=processed_blast, file_name=f"Resultado_blast_{zip_name}.xlsx",
                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
             
@@ -232,7 +232,7 @@ if modo_blast == "BLAST local contra modelo":
     carga_fasta_db = st.file_uploader("Carga el FASTA de referencia", type = ["fasta", "fa", "fna"])
     n_hits = st.selectbox("Número de hits", options = [10, 25, 50, 100], index = 1)
     
-    if (fasta_path and carga_fasta_db and "blast_df" not in st.session_state):
+    if (fasta_path and carga_fasta_db and "blast_df_local" not in st.session_state):
         with tempfile.NamedTemporaryFile(mode="wb", suffix=".fasta", delete=False) as tmp_db:
             tmp_db.write(carga_fasta_db.getbuffer())
             db_path = tmp_db.name
