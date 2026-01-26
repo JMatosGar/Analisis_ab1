@@ -8,7 +8,7 @@ from pipeline.carga_ab1 import cargar_ab1_zip
 from pipeline.cortar_ab1 import cortar_ab1
 from pipeline.QC import qc_plots
 from pipeline.consenso import generar_consensos, fasta_consenso
-from pipeline.blast import taxonomia
+from pipeline.blast import taxonomia, taxonomia_local
 
 #Se establecen las características de la app.
 st.set_page_config(
@@ -192,31 +192,79 @@ else:
     upload_fasta = st.file_uploader("Carga el fichero fasta con secuencias consenso", type = ["fasta", "fa", "fna"])
 
     if upload_fasta:
-        with tempfile.NamedTemporaryFile(mode = "w", suffix = ".fasta", delete = False) as tmp_fasta:
+        with tempfile.NamedTemporaryFile(mode = "wb", suffix = ".fasta", delete = False) as tmp_fasta:
             tmp_fasta.write(upload_fasta.getbuffer())
             fasta_path = tmp_fasta.name
 
-#Se pide el email para usar NCBI.
-email = st.text_input("Introduce el email para NCBI Entrez", value = "")    
+#Se selecciona el modo de uso.
+modo_blast = st.radio("Tipo de alineamiento", ["BLAST remoto contra NCBI", "BLAST local contra modelo"], horizontal = True)
 
-if fasta_path and st.button("🔬 Alineamiento contra NCBI"):
-    if email:
+#Primero, el blast remoto.
+if modo_blast == "BLAST remoto contra NCBI":
+    
+    #Se pide el email para usar NCBI.
+    email = st.text_input("Introduce el email para NCBI Entrez", value = "")    
+    
+    if (email and fasta_path and "blast_df" not in st.session_state):
         with st.spinner("Ejecutando BLAST remoto contra NCBI..."):
             try:
                 blast_df = taxonomia(fasta_path, email)
                 st.session_state["blast_df"] = blast_df
-                st.success("✅ Se ha realizado el BLAST correctamente") 
-                st.dataframe(st.session_state["blast_df"])
-
-                if  "blast_df" in st.session_state and not st.session_state["blast_df"].empty:
-                    output_blast = BytesIO()
-                    with pd.ExcelWriter(output_blast, engine='openpyxl') as writer:
-                        st.session_state["blast_df"].to_excel(writer, index=False, sheet_name="Trimmed Results")
-                    processed_blast = output_blast.getvalue()
-            
-                    st.download_button(label="📥 Descargar resultados de BLAST",
-                                       data=processed_blast, file_name=f"Resultado_blast_{zip_name}.xlsx",
-                                       mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-            
+                
             except Exception as e:
-                st.error(f"❌ Error al ejecutar BLAST: {e}")    
+                st.error(f"❌ Error al ejecutar BLAST: {e}") 
+                
+    if "blast_df" in st.session_state and not st.session_state["blast_df"].empty:
+        st.success("✅ Se ha realizado el BLAST correctamente") 
+        st.dataframe(st.session_state["blast_df"])
+        
+        output_blast = BytesIO()
+        with pd.ExcelWriter(output_blast, engine='openpyxl') as writer:
+            st.session_state["blast_df"].to_excel(writer, index=False, sheet_name="Trimmed Results")
+        processed_blast = output_blast.getvalue()
+            
+        st.download_button(label="📥 Descargar resultados de BLAST",ç
+                           data=processed_blast, file_name=f"Resultado_blast_{zip_name}.xlsx",
+                           mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            
+#A continuación se incorpora el BLAST local.
+if modo_blast == "BLAST local contra modelo":
+    carga_fasta_db = st.file_uploader("Carga el FASTA de referencia", type = ["fasta", "fa", "fna"])
+    n_hits = st.selectbox("Número de hits", options = [10, 25, 50, 100], index = 1)
+    
+    if (fasta_path and carga_fasta_db and "blast_df" not in st.session_state):
+        with tempfile.NamedTemporaryFile(mode="wb", suffix=".fasta", delete=False) as tmp_db:
+            tmp_db.write(carga_fasta_db.getbuffer())
+            db_path = tmp_db.name
+
+        with st.spinner("Ejecutando BLAST local..."):
+            blast_df, blast_fasta = taxonomia_local(fasta_muestra = fasta_path, fasta_db = db_path, max_hits = n_hits)
+
+        st.session_state["blast_df_local"] = blast_df
+        st.session_state["blast_fasta_local"] = blast_fasta
+
+    if "blast_df_local" in st.session_state:
+        st.success("✅ Se ha realizado el BLAST correctamente")
+        st.dataframe(st.session_state["blast_df_local"])
+
+        output_local_blast = BytesIO()
+        with pd.ExcelWriter(output_local_blast, engine="openpyxl") as writer:
+            st.session_state["blast_df_local"].to_excel(writer, index=False, sheet_name="BLAST_local")
+        processed_local_blast = output_local_blast.getvalue()
+
+        st.download_button(label="📥 Descargar resultados BLAST",
+                            data=processed_local_blast, file_name="blast_local_resultados.xlsx",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+    if "blast_fasta_local" in st.session_state:
+        n_sec = st.session_state["blast_fasta_local"].count(">")
+        if n_sec < 5:
+            st.warning("⚠️ Hay menos de 5 secuencias disponibles. IQ-TREE requiere más secuencias para hacer una filogenia válida")
+            
+        st.download_button("📥 Descargar FASTA (query + hits)",
+                           data=st.session_state["blast_fasta_local"].encode(), file_name="blast_hits_para_mafft.fasta", mime="text/plain")
+
+if st.button("🔄 Recalcular BLAST"):
+    for key in ["blast_df", "blast_df_local", "blast_fasta_local"]:
+        if key in st.session_state:
+            del st.session_state[key]
