@@ -62,14 +62,15 @@ def taxonomia(fasta_path, email):
 
     for record in records:
         query_seq = str(record.seq)
+        fasta_str = f">{record.id}\n{query_seq}"
         
-        # Si la secuencia ya fue procesada
+        #Si la secuencia ya fue procesada
         if query_seq in seq_cache:
             filas.append(seq_cache[query_seq])
             continue
 
         try:
-            # BLAST remoto
+            #BLAST remoto
             result_handle = NCBIWWW.qblast(
                 program="blastn",
                 database="nt",
@@ -83,7 +84,7 @@ def taxonomia(fasta_path, email):
             if not blast_record.alignments:
                 row = {
                     "ID": record.id,
-                    "FASTA": query_seq,
+                    "FASTA": fasta_str,
                     "Dominio": None,
                     "Filo": None,
                     "Clase": None,
@@ -125,7 +126,7 @@ def taxonomia(fasta_path, email):
 
             row = {
                 "ID": record.id,
-                "FASTA": query_seq,
+                "FASTA": fasta_str,
                 "Dominio": taxon.get("Domain"),
                 "Filo": taxon.get("Phylum"),
                 "Clase": taxon.get("Class"),
@@ -151,7 +152,7 @@ def taxonomia(fasta_path, email):
         except Exception as e:
             row = {
                 "ID": record.id,
-                "FASTA": query_seq,
+                "FASTA": fasta_str,
                 "Dominio": None,
                 "Filo": None,
                 "Clase": None,
