@@ -44,7 +44,7 @@ def qc_plots(df, umbral=20, trimmed=True):
     cal_data = []
     for _, row in df.iterrows():
         for q in row[cal_col]:
-            cal_data.append({"Sample": row["Sample"], "Quality": q})
+            cal_data.append({"Sample": row["Sample"], "read_ID": row["read_ID"], "Quality": q})
 
     cal_df = pd.DataFrame(cal_data)
 
