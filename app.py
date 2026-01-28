@@ -223,10 +223,15 @@ if modo_blast == "BLAST remoto contra NCBI":
         with pd.ExcelWriter(output_blast, engine='openpyxl') as writer:
             st.session_state["blast_df"].to_excel(writer, index=False, sheet_name="Trimmed Results")
         processed_blast = output_blast.getvalue()
-            
-        st.download_button(label="📥 Descargar resultados de BLAST",
-                           data=processed_blast, file_name=f"Resultado_blast_{zip_name}.xlsx",
-                           mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+        if usar_cons:
+            st.download_button(label="📥 Descargar resultados de BLAST",
+                               data=processed_blast, file_name=f"Resultado_blast_{zip_name}.xlsx",
+                               mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        else:
+            st.download_button(label="📥 Descargar resultados de BLAST",
+                               data=processed_blast, file_name="Resultado_blast.xlsx",
+                               mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")            
             
 #A continuación se incorpora el BLAST local.
 if modo_blast == "BLAST local contra modelo":
