@@ -304,11 +304,11 @@ if "blast_fasta_local" in st.session_state:
                     mime="text/plain")
         
     if prog_alin == "MUSCLE":
-            if not shutil.which("muscle"):
-                st.error("❌ MUSCLE no ha sido instalado en el PATH del sistema")
-                st.stop()
-            else:
-                st.caption(f"🧬 Usando MUSCLE desde: {shutil.which('muscle')}")
+        if not shutil.which("muscle"):
+            st.error("❌ MUSCLE no ha sido instalado en el PATH del sistema")
+            st.stop()
+        else:
+            st.caption(f"🧬 Usando MUSCLE desde: {shutil.which('muscle')}")
 
         with st.spinner("Ejecutando MUSCLE..."):
             fasta_alineado = muscle(fasta_alin)
