@@ -4,11 +4,13 @@ import os
 import tempfile
 from io import BytesIO
 import pandas as pd
+import shutil
 from pipeline.carga_ab1 import cargar_ab1_zip
 from pipeline.cortar_ab1 import cortar_ab1
 from pipeline.QC import qc_plots
 from pipeline.consenso import generar_consensos, fasta_consenso
 from pipeline.blast import taxonomia, taxonomia_local
+from pipeline.alineamiento import mafft, muscle
 
 #Se establecen las características de la app.
 st.set_page_config(
@@ -282,30 +284,42 @@ if "blast_fasta_local" in st.session_state:
         modo_mafft = st.selectbox("Modo de alineamiento de MAFFT", ["Auto", "FFT-NS-2", "L-INS-i"], index = 0)
 
         if modo_mafft:
+            if not shutil.which("mafft"):
+                st.error("❌ MAFFT no ha sido instalado en el PATH del sistema")
+                st.stop()
+            else:
+                st.caption(f"🧬 Usando MAFFT desde: {shutil.which('mafft')}")
+                
             with st.spinner("Ejecutando MAFFT..."):
                 fasta_alineado = mafft(fasta_alin, modo = modo_mafft)
             st.session_state["alineamiento_mafft"] = fasta_alineado
 
-        if "alineamiento_mafft" in st.session_state and not st.session_state["alineamiento_mafft"].empty:
+        if "alineamiento_mafft" in st.session_state and st.session_state["alineamiento_mafft"]:
             st.success("✅ Alineamiento completado")
             st.text_area("Secuencias alineadas", st.session_state["alineamiento_mafft"], height = 300)
 
             st.download_button( "📥 Descargar FASTA alineado",
-                    data=fasta_alineado,
+                    data=st.session_state["alineamiento_mafft"],
                     file_name="secuencias_alineadas_mafft.fasta",
                     mime="text/plain")
         
     if prog_alin == "MUSCLE":
+            if not shutil.which("muscle"):
+                st.error("❌ MUSCLE no ha sido instalado en el PATH del sistema")
+                st.stop()
+            else:
+                st.caption(f"🧬 Usando MUSCLE desde: {shutil.which('muscle')}")
+
         with st.spinner("Ejecutando MUSCLE..."):
             fasta_alineado = muscle(fasta_alin)
         st.session_state["alineamiento_muscle"] = fasta_alineado
 
-        if "alineamiento_muscle" in st.session_state and not st.session_state["alineamiento_muscle"].empty:
+        if "alineamiento_muscle" in st.session_state and st.session_state["alineamiento_muscle"]:
             st.success("✅ Alineamiento completado")
-            st.text_area("Secuencias alineadas", st.session_state["alineamiento_mafft"], height = 300)
+            st.text_area("Secuencias alineadas", st.session_state["alineamiento_muscle"], height = 300)
         
             st.download_button("📥 Descargar FASTA alineado",
-                               data=fasta_alineado,
-                               file_name="secuencias_alineadas_mafft.fasta",
+                               data=st.session_state["alineamiento_muscle"],
+                               file_name="secuencias_alineadas_muscle.fasta",
                                mime="text/plain")        
         
