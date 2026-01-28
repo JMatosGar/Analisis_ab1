@@ -105,7 +105,7 @@ def taxonomia(fasta_path, email):
                     "Cobertura": 0
                 }
                 cached_row = seq_cache[query_seq].copy()
-                cached_row["FASTA"] = query_seq
+                cached_row["FASTA"] = fasta_str
                 filas.append(cached_row)
                 continue
 
@@ -148,7 +148,7 @@ def taxonomia(fasta_path, email):
             }
 
             filas.append(row)
-            row["FASTA"] = query_seq
+            row["FASTA"] = fasta_str
             seq_cache[query_seq] = row
             
         except Exception as e:
@@ -173,7 +173,7 @@ def taxonomia(fasta_path, email):
                 "Cobertura": None
             }
             filas.append(row)
-            row["FASTA"] = query_seq
+            row["FASTA"] = fasta_str
             seq_cache[query_seq] = row
 
 
