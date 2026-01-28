@@ -272,7 +272,7 @@ if st.button("🔄 Recalcular BLAST"):
 
 if "blast_fasta_local" in st.session_state:
     st.markdown("---")
-    st.title("MAFFT")
+    st.title("Alineamiento múltiple")
 
     fasta_alin= st.session_state["blast_fasta_local"]
     prog_alin = st.radio("Método para el alineamiento de secuencias", ["MAFFT", "MUSCLE"], horizontal=True)
