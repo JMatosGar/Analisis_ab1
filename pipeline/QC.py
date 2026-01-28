@@ -57,27 +57,39 @@ def qc_plots(df, umbral=20, trimmed=True):
 
     #Media y mediana de las secuencias.
     fig3, ax3 = plt.subplots(figsize=(6, 5))
-    sns.scatterplot(data=df, 
-                    x=mean_col, y=median_col,
-                    hue="Sample", s=80,ax=ax3)
-    ax3.axvline(x=umbral,
-                color="red",
-                linestyle="--", linewidth=1.5,
-                label=f"Umbral = {umbral}")
-    ax3.axhline(y=umbral,
-                color="red",
-                linestyle="--", linewidth=1.5)
-    ax3.fill_betweenx(y=[umbral, ax3.get_ylim()[1]], 
-                      x1=umbral, x2=ax3.get_xlim()[1], 
-                      color="green", alpha=0.1)
-    
-    ax3.legend(fontsize=6, title_fontsize=9)
+
+#Scatterplot sin leyenda
+    sns.scatterplot(
+        data=df,
+        x=mean_col, y=median_col,
+        s=70, ax=ax3,
+        color="steelblue")
+
+    #Líneas de umbral
+    ax3.axvline(x=umbral, color="purple", linestyle="--", linewidth=1.25)
+    ax3.axhline(y=umbral, color="purple", linestyle="--", linewidth=1.25)
+
+    #Zona de buena calidad.
+    ax3.fill_betweenx(
+    y=[umbral, ax3.get_ylim()[1]],
+    x1=umbral, x2=ax3.get_xlim()[1],
+    color="green",alpha=0.1)
+
+# Se etiquetan las muestras problemáticas.
+    bad = df[ (df[mean_col] < umbral) | (df[median_col] < umbral)]
+
+    for _, row in bad.iterrows():
+        ax3.text(
+            row[mean_col],
+            row[median_col],
+            row["Sample"],
+            fontsize=7, alpha=0.8,
+            ha="right", va="bottom")
+
+    #Etiquetas y título
     ax3.set_title("Calidad media vs mediana")
     ax3.set_xlabel("Calidad media")
     ax3.set_ylabel("Calidad mediana")
-
-    handles, labels = ax3.get_legend_handles_labels()
-    ax3.legend(handles[:len(df["Sample"].unique()) + 1], labels[:len(df["Sample"].unique()) + 1])
 
     figs.append(fig3)
 
