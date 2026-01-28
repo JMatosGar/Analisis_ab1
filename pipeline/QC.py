@@ -27,7 +27,7 @@ def qc_plots(df, umbral=20, trimmed=True):
 
     df = df.copy()
     df["read_ID"] = (df["ID"].astype(str).str.replace(".ab1", "", regex=False).str.split("_").str[:2].str.join("_"))
-    df["Sample"] = df["Read_ID"].str.split("_").str[0]
+    df["Sample"] = df["read_ID"].str.split("_").str[0]
     df = df.sort_values(["Sample", "Read_ID"])
 
     #Longitud de las secuencias.
