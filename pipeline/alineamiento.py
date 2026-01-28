@@ -57,12 +57,7 @@ def muscle(fasta):
 
             cmd = ["muscle", "-align", tmp_in.name]
 
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                check=True
-            )
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
 
             final += result.stdout + "\n"
 
