@@ -18,8 +18,8 @@ def _agrupar_por_muestra(fasta_str):
 
 
 def mafft(fasta, modo="Auto"):
-  #Se aplica el agrupado de las muestras.  
-  grupos = _agrupar_por_muestra(fasta)
+    #Se aplica el agrupado de las muestras.  
+    grupos = _agrupar_por_muestra(fasta)
     final = ""
 
     #Se itera por cada muestra y sus respectivos hits.
