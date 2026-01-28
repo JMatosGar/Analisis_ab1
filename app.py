@@ -190,7 +190,7 @@ if usar_cons:
 
 #En caso de no activar la checkbox el usuario debe cargar su propio fasta.
 else:
-    upload_fasta = st.file_uploader("Carga el fichero fasta con secuencias consenso", type = ["fasta", "fa", "fna"])
+    upload_fasta = st.file_uploader("Carga el fichero fasta con secuencias consenso", type = ["fasta", "fa", "fna", "fas"])
 
     if upload_fasta:
         with tempfile.NamedTemporaryFile(mode = "wb", suffix = ".fasta", delete = False) as tmp_fasta:
