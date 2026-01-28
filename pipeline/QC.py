@@ -37,7 +37,7 @@ def qc_plots(df, umbral=20, trimmed=True):
     ax1.axhspan(400, 650, color="orange", alpha=0.15)
     ax1.axhspan(650, df[len_col].max() * 1.1, color="green", alpha=0.15)
     ax1.set_title("Longitud de secuencia")
-    ax1.tick_params(axis="x", rotation=90, labelsize=4)
+    ax1.tick_params(axis="x", rotation=90, labelsize=6)
     figs.append(fig1)
     
     #Boxplot con calidades de las secuencias.
@@ -54,7 +54,7 @@ def qc_plots(df, umbral=20, trimmed=True):
     ax2.axhspan(20, 30, color="orange", alpha=0.15)
     ax2.axhspan(30, cal_df["Quality"].max() * 1.1, color="green", alpha=0.15)
     ax2.set_title("Distribución de calidades")
-    ax2.tick_params(axis="x", rotation=90, labelsize=4)
+    ax2.tick_params(axis="x", rotation=90, labelsize=6)
     figs.append(fig2)
 
     #Media y mediana de las secuencias.
