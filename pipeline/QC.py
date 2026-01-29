@@ -102,7 +102,7 @@ def qc_plots(df, umbral=20, trimmed=True):
     bad = df[(df[mean_col] < umbral) | (df[median_col] < umbral)]
 
     for _, row in bad.iterrows():
-        ax3.text(row[mean_col], row[median_col],row["Sample"],
+        ax3.text(row[mean_col], row[median_col],row["read_ID"],
             fontsize=7, alpha=0.8, ha="right",va="bottom")
 
     ax3.set_title("Calidad media vs mediana")
