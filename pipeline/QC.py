@@ -47,7 +47,7 @@ def qc_plots(df, umbral=20, trimmed=True):
     ax1.axhspan(650, df[len_col].max() * 1.1, color="green", alpha=0.15)
 
     for pos in separador:
-        ax1.axvline(pos, color="black", linestyle="dotted", linewidth=0.6, alpha=0.5)
+        ax1.axvline(pos, color="black", linestyle="-", linewidth=0.6, alpha=0.5)
 
     ax1.set_title("Longitud de secuencia")
     ax1.tick_params(axis="x", rotation=90, labelsize=5)
@@ -73,7 +73,7 @@ def qc_plots(df, umbral=20, trimmed=True):
     ax2.axhspan(30, cal_df["Quality"].max() * 1.1, color="green", alpha=0.15)
 
     for pos in separador:
-        ax2.axvline(pos, color="black", linestyle="dotted", linewidth=0.6, alpha=0.5)
+        ax2.axvline(pos, color="black", linestyle="-", linewidth=0.6, alpha=0.5)
 
     ax2.set_title("Distribución de calidades")
     ax2.tick_params(axis="x", rotation=90, labelsize=5)
