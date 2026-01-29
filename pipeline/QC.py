@@ -84,7 +84,7 @@ def qc_plots(df, umbral=20, trimmed=True):
     fig3, ax3 = plt.subplots(figsize=(6, 5))
 
     #Scatterplot sin leyenda.
-    sns.scatterplot(data=df,
+    sns.scatterplot(data=df_qc,
     x=mean_col, y=median_col,
     s=70, ax=ax3,color="steelblue")
 
@@ -99,7 +99,7 @@ def qc_plots(df, umbral=20, trimmed=True):
         color="green", alpha=0.1)
 
     #Se etiquetan las muestras problemáticas.
-    bad = df[(df[mean_col] < umbral) | (df[median_col] < umbral)]
+    bad = df_qc[(df_qc[mean_col] < umbral) | (df_qc[median_col] < umbral)]
 
     for _, row in bad.iterrows():
         ax3.text(row[mean_col], row[median_col],row["read_ID"],
