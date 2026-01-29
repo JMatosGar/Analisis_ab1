@@ -80,20 +80,30 @@ def qc_plots(df, umbral=20, trimmed=True):
 
     figs.append(fig2)
 
-    #Media vs mediana de las calidades.
+    #Media vs mediana de las calidades de las secuencias.
     fig3, ax3 = plt.subplots(figsize=(6, 5))
 
-    sns.scatterplot(data=df_qc,
-        x=mean_col, y=median_col,
-        ax=ax3, s=70, color="steelblue")
+    #Scatterplot sin leyenda.
+    sns.scatterplot(data=df,
+    x=mean_col, y=median_col,
+    s=70, ax=ax3,color="steelblue")
 
-    ax3.axvline(x=umbral, color="red", linestyle="--", linewidth=1.5)
-    ax3.axhline(y=umbral, color="red", linestyle="--", linewidth=1.5)
+    #Líneas de umbral
+    ax3.axvline(x=umbral, color="red", linestyle="--", linewidth=1.25)
+    ax3.axhline(y=umbral, color="red", linestyle="--", linewidth=1.25)
 
+    #Se define una zona de buena calidad.
     ax3.fill_betweenx(
         y=[umbral, ax3.get_ylim()[1]],
-        x1=umbral, x2=ax3.get_xlim()[1],
+        x1=umbral,x2=ax3.get_xlim()[1],
         color="green", alpha=0.1)
+
+    #Se etiquetan las muestras problemáticas.
+    bad = df[(df[mean_col] < umbral) | (df[median_col] < umbral)]
+
+    for _, row in bad.iterrows():
+        ax3.text(row[mean_col], row[median_col],row["Sample"],
+            fontsize=7, alpha=0.8, ha="right",va="bottom")
 
     ax3.set_title("Calidad media vs mediana")
     ax3.set_xlabel("Calidad media")
