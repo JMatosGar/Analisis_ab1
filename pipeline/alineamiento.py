@@ -20,12 +20,18 @@ def mafft(fasta, modo="Auto"):
     final = ""
 
     for muestra, recs in grupos.items():
+        if not recs:
+            continue
+
         with tempfile.NamedTemporaryFile(mode="w+", suffix=".fasta", delete=False) as tmp_in:
             SeqIO.write(recs, tmp_in, "fasta")
             tmp_in.flush()
 
-            cmd = ["mafft"]
+            #Ruta completa a MAFFT en Windows
+            cmd_mafft = r"C:\MAFFT\mafft.bat"
 
+            #Construir comando según modo
+            cmd = [cmd_mafft]
             if modo == "FFT-NS-2":
                 cmd.append("--fftns")
             elif modo == "L-INS-i":
@@ -33,26 +39,45 @@ def mafft(fasta, modo="Auto"):
 
             cmd.append(tmp_in.name)
 
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True, shell=True)
+            try:
+                result = subprocess.run(cmd, capture_output=True, text=True, check=True, shell=True)
+            
+            except subprocess.CalledProcessError as e:
+                print("STDOUT:", e.stdout)
+                print("STDERR:", e.stderr)
+                raise RuntimeError(f"❌ Error ejecutando MAFFT para {muestra}")
 
             final += result.stdout + "\n"
 
     return final
+
 
 
 def muscle(fasta):
     grupos = agrupar(fasta)
     final = ""
 
+    cmd_muscle = r"C:\MUSCLE\muscle.exe" 
+
     for muestra, recs in grupos.items():
+        if not recs:
+            continue
+
         with tempfile.NamedTemporaryFile(mode="w+", suffix=".fasta", delete=False) as tmp_in:
             SeqIO.write(recs, tmp_in, "fasta")
             tmp_in.flush()
 
-            cmd = ["muscle", "-align", tmp_in.name]
+            cmd = [cmd_muscle, "-align", tmp_in.name]
 
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            try:
+                result = subprocess.run(cmd, capture_output=True, text=True, check=True, shell=True)
+            
+            except subprocess.CalledProcessError as e:
+                print("STDOUT:", e.stdout)
+                print("STDERR:", e.stderr)
+                raise RuntimeError(f"❌ Error ejecutando MUSCLE para {muestra}")
 
             final += result.stdout + "\n"
 
     return final
+
