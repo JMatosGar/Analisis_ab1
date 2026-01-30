@@ -10,6 +10,7 @@ from pipeline.QC import qc_plots
 from pipeline.consenso import generar_consensos, fasta_consenso
 from pipeline.blast import taxonomia, taxonomia_local
 from pipeline.alineamiento import mafft, muscle
+from pipeline.filogenia import iqtree, mostrar_arbol
 
 #Se establecen las características de la app.
 st.set_page_config(
@@ -327,3 +328,66 @@ if "blast_fasta_local" in st.session_state:
                                file_name="secuencias_alineadas_muscle.fasta",
                                mime="text/plain")        
         
+if "alineamiento_mafft" in st.session_state or "alineamiento_muscle" in st.session_state:
+    st.markdown("---")
+    st.title("🌳 Filogenia según IQ-Tree")
+
+    if "alineamiento_mafft" in st.session_state:
+        fasta_alin = st.session_state["alineamiento_mafft"]
+        st.caption("Alineamiento usado: MAFFT")
+    else:
+        fasta_alin = st.session_state["alineamiento_muscle"]
+        st.caption("Alineamiento usado: MUSCLE")
+
+    #Se establecen los parámetros para IQ-TREE.
+    distancias = st.checkbox("📏 Mostrar distancia evolutiva en las ramas", value=False)
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        bootstrap = st.selectbox("Número de repeticiones (bootstrap)", options=[100, 500, 1000, 1500, 2000], index=3)
+    with col2:
+        modelo = st.selectbox("Modelo evolutivo a emplear", options = ["MFP", "GTR+G", "HKY+G"], index=1)
+
+    if bootstrap and modelo:
+        if st.button("▶️ Ejecutar IQ-Tree"):
+            with st.spinner("Elaborando el árbol filogenético mediante IQ-Tree..."):
+                try:
+                    newick, resumen, log_iqtree = iqtree(fasta_alin, bootstrap, modelo)
+
+                    st.session_state["newick"] = newick
+                    st.session_state["resumen"] = resumen
+                    st.session_state["log_iqtree"] = log_iqtree
+
+                    st.success("✅ Filogenia completada")
+
+                except Exception as e:
+                    st.error(str(e))
+
+        if "resumen" in st.session_state:
+            st.subheader("Resumen del proceso")
+
+            resumen_arbol = (pd.DataFrame.from_dict(st.session_state["resumen"], orient="index", columns=["Valor"]).reset_index().rename(columns={"index":"Parámetro"}))
+            st.dataframe(resumen_arbol, use_container_width=True)
+
+        if "newick" in st.session_state:
+            st.subheader("🌿 Árbol generado")
+
+            img_arbol = mostrar_arbol(st.session_state["newick"], distancia = distancias)
+            st.image(img_arbol, use_column_width=True)
+
+            st.subheader("Descargas")
+            st.download_button(label="📄 Descargar árbol (Newick)",
+                               data=st.session_state["newick"], 
+                               file_name="arbol_iqtree.newick", 
+                               mime="text/plain")
+
+            st.download_button(label="🖼️ Descargar árbol (PNG)",
+                               data=img_arbol,
+                               file_name="arbol_filogenetico.png",
+                               mime="image/png")
+
+            st.download_button(label="📄 Descargar informe IQ-TREE",
+                               data=st.session_state["log_iqtree"],
+                               file_name="iqtree_resumen.txt",
+                               mime="text/plain")
