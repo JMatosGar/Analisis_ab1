@@ -36,7 +36,7 @@ def mafft(fasta, modo="Auto"):
 
             cmd.append(tmp_in.name)
 
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True, shell=True)
 
             final += result.stdout + "\n"
 
