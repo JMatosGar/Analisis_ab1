@@ -8,30 +8,32 @@ import matplotlib.pyplot as plt
 
 #Función para obtener las características del arbol generado
 def resumen_arbol(tree):
-  resumen = {}
+    resumen = {}
 
-  for linea in tree.splitlines():
-    linea = linea.strip()
+    for linea in tree.splitlines():
+        linea = linea.strip()
 
-    if linea.startswith("Best-fit model according to"):
-      resumen["Modelo evolutivo"] = linea.split(":")[-1].strip()
+        if linea.startswith("Best-fit model according to"):
+            resumen["Modelo evolutivo"] = linea.split(":")[-1].strip()
 
-    elif linea.startswith("Log-likelihood of the tree"):
-      resumen["Log-similitud"] = float(linea.split(":")[-1])
+        elif linea.startswith("Log-likelihood of the tree"):
+            valor = linea.split(":")[-1].strip().split()[0]
+            resumen["Log-similitud"] = float(valor)
 
-    elif linea.startswith("Total tree length"):
-      resumen["Longitud del árbol"] = float(linea.split(":")[-1])
+        elif linea.startswith("Total tree length"):
+            valor = linea.split(":")[-1].strip().split()[0]
+            resumen["Longitud del árbol"] = float(valor)
 
-    elif linea.startswith("Number of sequences"):
-      resumen["Número de secuencias"] = int(linea.split(":")[-1])
+        elif linea.startswith("Number of sequences"):
+            resumen["Número de secuencias"] = int(linea.split(":")[-1])
 
-    elif linea.startswith("Alignment length"):
-      resumen["Longitud del alineamiento"] = int(linea.split(":")[-1])
+        elif linea.startswith("Alignment length"):
+            resumen["Longitud del alineamiento"] = int(linea.split(":")[-1])
 
-    elif "Bootstrap" in linea and "replicates" in linea:
-      resumen["Bootstrap"] = linea.split(":")[-1].strip()
+        elif "Bootstrap" in linea and "replicates" in linea:
+            resumen["Bootstrap"] = linea.split(":")[-1].strip()
 
-  return resumen
+    return resumen
 
 #Función de IQTree desde el PC.
 def iqtree(fasta_alin, bootstrap = 1000, modelo = "MFP"):
