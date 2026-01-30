@@ -289,13 +289,7 @@ if "blast_fasta_local" in st.session_state:
         #Se selecciona el modo del MAFFT.
         modo_mafft = st.selectbox("Modo de alineamiento de MAFFT", ["Auto", "FFT-NS-2", "L-INS-i"], index = 0)
 
-        if modo_mafft:
-            if not shutil.which("mafft"):
-                st.error("❌ MAFFT no ha sido instalado en el PATH del sistema")
-                st.stop()
-            else:
-                st.caption(f"🧬 Usando MAFFT desde: {shutil.which('mafft')}")
-                
+        if modo_mafft:                
             with st.spinner("Ejecutando MAFFT..."):
                 fasta_alineado = mafft(fasta_alin, modo = modo_mafft)
             st.session_state["alineamiento_mafft"] = fasta_alineado
@@ -310,12 +304,6 @@ if "blast_fasta_local" in st.session_state:
                     mime="text/plain")
         
     if prog_alin == "MUSCLE":
-        if not shutil.which("muscle"):
-            st.error("❌ MUSCLE no ha sido instalado en el PATH del sistema")
-            st.stop()
-        else:
-            st.caption(f"🧬 Usando MUSCLE desde: {shutil.which('muscle')}")
-
         with st.spinner("Ejecutando MUSCLE..."):
             fasta_alineado = muscle(fasta_alin)
         st.session_state["alineamiento_muscle"] = fasta_alineado
