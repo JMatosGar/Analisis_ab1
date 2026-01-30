@@ -91,9 +91,9 @@ def mostrar_arbol(newick, distancia = False):
     Phylo.draw(tree, axes = ax, do_show = False, show_confidence = True)
 
   buffer = BytesIO()
-  plt.savefig(buf, format="png", bbox_inches="tight", dpi=300)
+  plt.savefig(buffer, format="png", bbox_inches="tight", dpi=300)
   plt.close(fig)
-  buf.seek(0)
+  buffer.seek(0)
 
   return buffer
                                      
