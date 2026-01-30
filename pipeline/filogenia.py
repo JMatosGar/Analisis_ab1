@@ -36,7 +36,7 @@ def resumen_arbol(tree):
 #Función de IQTree desde el PC.
 def iqtree(fasta_alin, bootstrap = 1000, modelo = "MFP"):
   #Se comprueba que está IQTree en el PATH del sistema.
-  if not shutil.which("iqtree2"):
+  if not shutil.which("iqtree3"):
     raise RuntimeError("❌ IQ-Tree no se encuentra en el PATH")
 
   with tempfile.TemporaryDirectory() as tmpdir:
@@ -45,7 +45,7 @@ def iqtree(fasta_alin, bootstrap = 1000, modelo = "MFP"):
       f.write(fasta_alin)
 
     #Se establecen las condiciones de IQ-TREE y se ejecuta.
-    cmd = ["iqtree2",
+    cmd = ["iqtree3",
            "-s", fasta_path,
            "-m", modelo,
            "-B", str(bootstrap),
