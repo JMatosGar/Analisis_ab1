@@ -16,9 +16,6 @@ def agrupar(fasta_str):
     return grupos
 
 def mafft(fasta, modo="Auto"):
-    if not shutil.which("mafft"):
-        raise RuntimeError("❌ MAFFT no está disponible en el PATH del sistema")
-
     grupos = agrupar(fasta)
     final = ""
 
@@ -44,9 +41,6 @@ def mafft(fasta, modo="Auto"):
 
 
 def muscle(fasta):
-    if not shutil.which("muscle"):
-        raise RuntimeError("❌ MUSCLE no está disponible en el PATH del sistema")
-
     grupos = agrupar(fasta)
     final = ""
 
