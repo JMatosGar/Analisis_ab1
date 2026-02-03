@@ -188,24 +188,34 @@ def taxonomia_local(fasta_muestra, fasta_db, max_hits = 25):
     db_rec = {rec.id: rec for rec in SeqIO.parse(fasta_db, "fasta")}
 
     for qidx, (qid, qsec) in enumerate(query_rec.items(), start=1):
-        query_id = f"Muestra_{qidx}"
+        query_id = qid
         sec_fasta[query_id] = str(qsec.seq)
 
-        for hidx, (hid, hsec) in enumerate(list(db_rec.items())[:max_hits], start=1):
-            hit_id = f"Muestra_{qidx}_Hit_{hidx}_{hid}"
-            sec_fasta[hit_id] = str(hsec.seq)
+        hits_res = []
 
+        for hid, hrec in db_rec.items():
             aln = pairwise2.align.globalxx(qsec.seq, hsec.seq, one_alignment_only=True)[0]
             matches = sum(1 for a,b in zip(aln.seqA, aln.seqB) if a==b)
             
             identidad = round(matches/len(aln.seqA)*100, 4)
-            cobertura = round(len(aln.seqA)/len(qsec.seq)*100, 4)
+            cobertura = round(len(aln.seqA)/len(qsec.seq)*100, 4) 
+
+            hits_res.append({"hid": hid,
+                            "hseq": str(hrec.seq),
+                            "Identidad": identidad,
+                            "Cobertura": cobertura})
+
+        hits_res.sort(key=lambda x: (x["Identidad"]. x["Cobertura"]), reverse=True)
+
+        for hidx, hit in enumerate(list(hits_res[:max_hits], start=1):
+            hit_id = f"{query_id}|{hit["hid"]}"
+            sec_fasta[hit_id] = hit["hseq"]
 
             filas.append({
                 "ID": query_id,
                 "ID hit": hit_id,
-                "% Identidad": identidad,
-                "% Cobertura": cobertura})
+                "% Identidad": hit["Identidad"],
+                "% Cobertura": hit["Cobertura"]})
 
     df = pd.DataFrame(filas)
 
