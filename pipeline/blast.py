@@ -207,7 +207,7 @@ def taxonomia_local(fasta_muestra, fasta_db, max_hits = 25):
 
         hits_res.sort(key=lambda x: (x["Identidad"], x["Cobertura"]), reverse=True)
 
-        for hidx, hit in enumerate(list(hits_res[:max_hits], start=1)):
+        for hidx, hit in enumerate((hits_res[:max_hits], start=1):
             hit_id = f"{query_id}|{hit["hid"]}"
             sec_fasta[hit_id] = hit["hseq"]
 
