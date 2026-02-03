@@ -194,7 +194,7 @@ def taxonomia_local(fasta_muestra, fasta_db, max_hits = 25):
         hits_res = []
 
         for hid, hrec in db_rec.items():
-            aln = pairwise2.align.globalxx(qsec.seq, hsec.seq, one_alignment_only=True)[0]
+            aln = pairwise2.align.globalxx(qsec.seq, hrec.seq, one_alignment_only=True)[0]
             matches = sum(1 for a,b in zip(aln.seqA, aln.seqB) if a==b)
             
             identidad = round(matches/len(aln.seqA)*100, 4)
