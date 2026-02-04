@@ -179,53 +179,70 @@ def taxonomia(fasta_path, email):
 
     return pd.DataFrame(filas)
 
-def taxonomia_local(fasta_muestra, fasta_db, max_hits = 25):
+def taxonomia_local(fasta_muestra, fasta_db, max_hits=25):
     filas = []
-    sec_fasta = OrderedDict()
-    
-    #Se cargan los fastas
+
+    muestras = OrderedDict()  
+    hits_globales = OrderedDict() 
+
     query_rec = {rec.id: rec for rec in SeqIO.parse(fasta_muestra, "fasta")}
     db_rec = {rec.id: rec for rec in SeqIO.parse(fasta_db, "fasta")}
 
-    for qidx, (qid, qsec) in enumerate(query_rec.items(), start=1):
-        query_id = qid
-        sec_fasta[query_id] = str(qsec.seq)
+    for qid, qrec in query_rec.items():
+        muestras[qid] = str(qrec.seq)
 
-        hits_res = []
+        resultados_hits = []
 
+        # Alinear contra TODA la base de datos
         for hid, hrec in db_rec.items():
-            aln = pairwise2.align.globalxx(qsec.seq, hrec.seq, one_alignment_only=True)[0]
-            matches = sum(1 for a,b in zip(aln.seqA, aln.seqB) if a==b)
-            
-            identidad = round(matches/len(aln.seqA)*100, 4)
-            cobertura = round(len(aln.seqA)/len(qsec.seq)*100, 4) 
+            aln = pairwise2.align.globalxx(
+                qrec.seq, hrec.seq, one_alignment_only=True
+            )[0]
 
-            hits_res.append({"hid": hid,
-                            "hseq": str(hrec.seq),
-                            "Identidad": identidad,
-                            "Cobertura": cobertura})
+            matches = sum(
+                1 for a, b in zip(aln.seqA, aln.seqB) if a == b
+            )
 
-        hits_res.sort(key=lambda x: (x["Identidad"], x["Cobertura"]), reverse=True)
+            identidad = matches / len(aln.seqA) * 100
+            cobertura = len(aln.seqA) / len(qrec.seq) * 100
 
-        for hidx, hit in enumerate(hits_res[:max_hits], start=1):
-            hit_id = f"{query_id}|{hit["hid"]}"
-            sec_fasta[hit_id] = hit["hseq"]
+            resultados_hits.append({
+                "hid": hid,
+                "hseq": str(hrec.seq),
+                "identidad": round(identidad, 4),
+                "cobertura": round(cobertura, 4)
+            })
+
+        # Ordenar por identidad (y cobertura como desempate)
+        resultados_hits.sort(
+            key=lambda x: (x["identidad"], x["cobertura"]),
+            reverse=True
+        )
+
+        # Seleccionar los mejores hits
+        for hit in resultados_hits[:max_hits]:
+            hid = hit["hid"]
+
+            # Guardar hit solo si no existe aún
+            if hid not in hits_globales:
+                hits_globales[hid] = hit["hseq"]
 
             filas.append({
-                "ID": query_id,
-                "ID hit": hit_id,
-                "% Identidad": hit["Identidad"],
-                "% Cobertura": hit["Cobertura"]})
+                "Muestra": qid,
+                "Hit": hid,
+                "% Identidad": hit["identidad"],
+                "% Cobertura": hit["cobertura"]
+            })
 
     df = pd.DataFrame(filas)
 
     #Se genera el fichero FASTA final.
     fasta_out = ""
 
-    for sid, sec in sec_fasta.items():
-        fasta_out += f">{sid}\n{sec}\n"
+    for mid, seq in muestras.items():
+        fasta_out += f">{mid}\n{seq}\n"
+
+    for hid, seq in hits_globales.items():
+        fasta_out += f">{hid}\n{seq}\n"
 
     return df, fasta_out
-                    
-
-    
